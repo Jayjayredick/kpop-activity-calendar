@@ -1,0 +1,368 @@
+from __future__ import annotations
+
+import unittest
+import json
+from datetime import datetime, timedelta
+from pathlib import Path
+from tempfile import TemporaryDirectory
+from zoneinfo import ZoneInfo
+
+from kpop_notice_collector.adapters.naver_news import NaverNewsAdapter
+from kpop_notice_collector.calendar_feed import build_calendar_feed
+from kpop_notice_collector.classifier import classify, news_rejection_reason
+from kpop_notice_collector.config import load_artists
+from kpop_notice_collector.event_cluster import cluster_events
+from kpop_notice_collector.event_parser import parse_event_fields
+from kpop_notice_collector.models import Artist, Notice
+from kpop_notice_collector.news_pipeline import (
+    choose_search_name,
+    run_naver_news,
+    title_artist_alias,
+)
+from kpop_notice_collector.qa import compare_manual_truth
+from kpop_notice_collector.schedule_compare import assess_schedule_change
+
+
+class CoreTests(unittest.TestCase):
+    def test_calendar_feed_keeps_only_next_three_months(self):
+        tz = ZoneInfo("Asia/Seoul")
+        now = datetime(2026, 7, 28, 7, 35, tzinfo=tz)
+        rows = [
+            {
+                "event_key": "rv-comeback",
+                "company": "SM",
+                "label": "SM",
+                "artist": "Red Velvet",
+                "activity_type": "COMEBACK",
+                "event_name": "New Album",
+                "event_dates": "2026-07-27|2026-07-28|2026-10-28|2026-10-29",
+                "primary_url": "https://example.com/rv",
+            }
+        ]
+        with TemporaryDirectory() as temp_dir:
+            path = Path(temp_dir) / "calendar_events.json"
+            build_calendar_feed(rows, path, now=now, months=3)
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(payload["rangeStart"], "2026-07-28")
+        self.assertEqual(payload["rangeEndInclusive"], "2026-10-28")
+        self.assertEqual(
+            [event["start"] for event in payload["events"]],
+            ["2026-07-28", "2026-10-28"],
+        )
+
+    def test_master_counts(self):
+        artists = load_artists()
+        self.assertEqual(len(artists), 59)
+        self.assertEqual(
+            {company: sum(a.company == company for a in artists) for company in ["HYBE", "SM", "JYP", "YG"]},
+            {"HYBE": 22, "SM": 16, "JYP": 15, "YG": 6},
+        )
+
+    def test_priority_keyword(self):
+        notice = Notice(
+            source_id="test",
+            company="SM",
+            label="SM",
+            artist_id="red_velvet",
+            artist="Red Velvet",
+            title="팬콘 전석 매진에 추가 회차 오픈",
+            url="https://www.smentertainment.com/newsroom/test/",
+            published_at=datetime.now(ZoneInfo("Asia/Seoul")),
+            body="레드벨벳 팬콘의 7월 31일 추가 회차를 오픈한다.",
+            fetched_at=datetime.now(ZoneInfo("Asia/Seoul")),
+        )
+        classify(notice)
+        self.assertEqual(notice.activity_type, "ADDITIONAL_SHOW")
+        self.assertGreaterEqual(notice.score, 45)
+        self.assertIn("추가 회차", notice.clipped_text)
+
+    def test_naver_adapter_and_relevance_filter(self):
+        now = datetime(2026, 7, 28, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+        artist = Artist(
+            artist_id="red_velvet",
+            company="SM",
+            label="SM",
+            name="Red Velvet",
+            aliases=["레드벨벳"],
+            official_url="https://example.com",
+            source_ids=[],
+        )
+
+        class FakeResponse:
+            def raise_for_status(self):
+                return None
+
+            def json(self):
+                pub_date = (now - timedelta(hours=2)).strftime(
+                    "%a, %d %b %Y %H:%M:%S %z"
+                )
+                return {
+                    "items": [
+                        {
+                            "title": "<b>레드벨벳</b>, 신보 발매 확정",
+                            "originallink": "https://www.yna.co.kr/view/test",
+                            "link": "https://n.news.naver.com/test",
+                            "description": "레드벨벳이 새 앨범으로 컴백한다.",
+                            "pubDate": pub_date,
+                        },
+                        {
+                            "title": "다른 가수 신보 발매",
+                            "originallink": "https://example.net/other",
+                            "link": "https://n.news.naver.com/other",
+                            "description": "관련 없는 기사",
+                            "pubDate": pub_date,
+                        },
+                        {
+                            "title": "레드벨벳 과거 컴백 기사",
+                            "originallink": "https://example.net/old",
+                            "link": "https://n.news.naver.com/old",
+                            "description": "오래된 기사",
+                            "pubDate": (now - timedelta(hours=30)).strftime(
+                                "%a, %d %b %Y %H:%M:%S %z"
+                            ),
+                        },
+                    ]
+                }
+
+        class FakeSession:
+            def __init__(self):
+                self.last_headers = {}
+
+            def get(self, *args, **kwargs):
+                self.last_headers = kwargs["headers"]
+                return FakeResponse()
+
+        adapter = NaverNewsAdapter(
+            key_id="id", key="secret", session=FakeSession()
+        )
+        config = {
+            "hours": 24,
+            "display": 100,
+            "sort": "date",
+            "max_pages": 1,
+            "blocked_title_aliases": [],
+            "default_publisher_score": 3,
+            "publisher_scores": {"yna.co.kr": 10},
+        }
+        rows, excluded, log = run_naver_news(
+            [artist], config, history=[], now=now, adapter=adapter
+        )
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0].publisher, "yna.co.kr")
+        self.assertEqual(rows[0].activity_type, "COMEBACK")
+        self.assertEqual(adapter.session.last_headers["X-NCP-APIGW-API-KEY-ID"], "id")
+        self.assertEqual(len(excluded), 1)
+        self.assertEqual(log[0]["error"], "")
+        self.assertEqual(log[0]["outside_24h"], 1)
+        self.assertEqual(log[0]["api_calls"], 1)
+
+    def test_ambiguous_korean_alias_is_blocked(self):
+        artist = Artist(
+            artist_id="itzy",
+            company="JYP",
+            label="JYP",
+            name="ITZY",
+            aliases=["ITZY", "있지"],
+            official_url="",
+            source_ids=[],
+        )
+        config = {
+            "search_name_overrides": {"itzy": "ITZY"},
+            "blocked_title_aliases": ["있지"],
+        }
+        self.assertEqual(choose_search_name(artist, config), "ITZY")
+        self.assertEqual(
+            title_artist_alias("기대할 수 있지…새 앨범 발매", artist, config),
+            "",
+        )
+        self.assertEqual(
+            title_artist_alias("ITZY, 새 앨범 발매 확정", artist, config),
+            "ITZY",
+        )
+
+    def test_followup_and_recap_are_rejected(self):
+        now = datetime.now(ZoneInfo("Asia/Seoul"))
+        followup = Notice(
+            source_id="test",
+            company="SM",
+            label="SM",
+            artist_id="red_velvet",
+            artist="Red Velvet",
+            title="레드벨벳, 컴백 하이라이트 메들리 공개",
+            url="https://example.com/followup",
+            published_at=now,
+            body="",
+            fetched_at=now,
+        )
+        classify(followup, title_only=True)
+        self.assertEqual(
+            news_rejection_reason(followup),
+            "티저·인터뷰·차트 등 후속 콘텐츠",
+        )
+
+        recap = Notice(
+            source_id="test",
+            company="SM",
+            label="SM",
+            artist_id="exo",
+            artist="EXO",
+            title="엑소, 월드투어 27회 성료",
+            url="https://example.com/recap",
+            published_at=now,
+            body="",
+            fetched_at=now,
+        )
+        classify(recap, title_only=True)
+        self.assertEqual(
+            news_rejection_reason(recap),
+            "종료·성료·과거 실적 기사",
+        )
+
+    def test_month_day_and_next_month_dates(self):
+        published = datetime(2026, 7, 28, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+        notice = Notice(
+            source_id="test",
+            company="SM",
+            label="SM",
+            artist_id="wayv",
+            artist="WayV",
+            title="WayV, 8월 10~11일 서울 콘서트 개최…내달 12일까지 팝업",
+            url="https://example.com/date",
+            published_at=published,
+            body="",
+            fetched_at=published,
+        )
+        parse_event_fields(notice)
+        self.assertEqual(
+            notice.event_dates,
+            ["2026-08-10", "2026-08-11", "2026-08-12"],
+        )
+
+    def test_schedule_change_detection(self):
+        now = datetime.now(ZoneInfo("Asia/Seoul"))
+        history = [
+            {
+                "event_key": "old",
+                "artist_id": "twice",
+                "activity_type": "TOUR_ANNOUNCEMENT",
+                "event_name": "THIS IS FOR World Tour",
+                "event_dates": "2026-08-01",
+                "cities": "서울",
+            }
+        ]
+        same_city = Notice(
+            source_id="test",
+            company="JYP",
+            label="JYP",
+            artist_id="twice",
+            artist="TWICE",
+            title="THIS IS FOR World Tour 서울 추가 일정",
+            url="https://example.com/1",
+            published_at=now,
+            body="",
+            fetched_at=now,
+            activity_type="TOUR_ANNOUNCEMENT",
+            score=32,
+            event_name="THIS IS FOR World Tour",
+            event_dates=["2026-08-02"],
+            cities=["서울"],
+        )
+        assess_schedule_change(same_city, history)
+        self.assertEqual(same_city.activity_type, "ADDITIONAL_SHOW")
+        self.assertEqual(same_city.schedule_status, "SAME_CITY_NEW_DATE")
+
+        new_city = Notice(
+            source_id="test",
+            company="JYP",
+            label="JYP",
+            artist_id="twice",
+            artist="TWICE",
+            title="THIS IS FOR World Tour 도쿄",
+            url="https://example.com/2",
+            published_at=now,
+            body="",
+            fetched_at=now,
+            activity_type="TOUR_ANNOUNCEMENT",
+            score=32,
+            event_name="THIS IS FOR World Tour",
+            event_dates=["2026-08-05"],
+            cities=["도쿄"],
+        )
+        assess_schedule_change(new_city, history)
+        self.assertEqual(new_city.activity_type, "TOUR_EXPANSION")
+        self.assertEqual(new_city.schedule_status, "NEW_CITY")
+
+    def test_same_dated_event_has_one_calendar_key(self):
+        now = datetime.now(ZoneInfo("Asia/Seoul"))
+        common = {
+            "source_id": "test",
+            "company": "SM",
+            "label": "SM",
+            "artist_id": "aespa",
+            "artist": "aespa",
+            "published_at": now,
+            "body": "",
+            "fetched_at": now,
+            "activity_type": "COMEBACK",
+            "event_dates": ["2026-08-10"],
+        }
+        first = Notice(title="aespa 새 앨범 발매", url="https://a.example", **common)
+        second = Notice(title="에스파 8월 컴백 확정", url="https://b.example", **common)
+        self.assertEqual(first.event_key, second.event_key)
+
+    def test_similar_articles_cluster_to_one_event(self):
+        now = datetime.now(ZoneInfo("Asia/Seoul"))
+        common = {
+            "source_id": "naver_news",
+            "source_type": "NAVER_NEWS",
+            "company": "YG",
+            "label": "YG",
+            "artist_id": "blackpink",
+            "artist": "BLACKPINK",
+            "published_at": now,
+            "body": "",
+            "fetched_at": now,
+            "activity_type": "POPUP",
+            "score": 70,
+            "matched_artist_alias": "블랙핑크",
+            "event_dates": ["2026-08-05"],
+            "cities": ["서울"],
+        }
+        first = Notice(
+            title="블랙핑크X다마고치 팝업스토어 오픈",
+            event_name="블랙핑크X다마고치 팝업스토어",
+            url="https://example.com/a",
+            **common,
+        )
+        second = Notice(
+            title="롯데백화점, 블랙핑크 다마고치 팝업 개최",
+            event_name="롯데백화점 블랙핑크 다마고치 팝업",
+            url="https://example.com/b",
+            **common,
+        )
+        clustered = cluster_events([first, second])
+        self.assertEqual(len(clustered), 1)
+        self.assertEqual(clustered[0].supporting_article_count, 2)
+        self.assertEqual(clustered[0].related_urls, ["https://example.com/b"])
+
+    def test_manual_truth_uses_semantic_fields(self):
+        with TemporaryDirectory() as temp_dir:
+            automated = Path(temp_dir) / "automated.csv"
+            manual = Path(temp_dir) / "manual.csv"
+            automated.write_text(
+                "event_key,artist,activity_type,event_name,event_dates,cities\n"
+                "hash,TWICE,COMEBACK,Strategy,2026-08-01,서울\n",
+                encoding="utf-8-sig",
+            )
+            manual.write_text(
+                "아티스트,활동 유형,행사명,이벤트 날짜,도시\n"
+                "TWICE,COMEBACK,Strategy,2026-08-01,서울\n",
+                encoding="utf-8-sig",
+            )
+            result = compare_manual_truth(automated, manual)
+            self.assertEqual(result["일치"], 1)
+            self.assertEqual(result["정밀도"], 1.0)
+
+
+if __name__ == "__main__":
+    unittest.main()

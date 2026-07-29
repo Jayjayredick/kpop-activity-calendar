@@ -1,0 +1,43 @@
+{
+  "hours": 24,
+  "display": 100,
+  "max_pages": 3,
+  "sort": "date",
+  "min_score": 40,
+  "excluded_examples_per_reason": 20,
+  "search_name_overrides": {
+    "itzy": "ITZY",
+    "bumzu": "BUMZU",
+    "andteam": "앤팀",
+    "riize": "RIIZE",
+    "winner": "WINNER"
+  },
+  "blocked_title_aliases": [
+    "있지",
+    "범주",
+    "이반",
+    "위너",
+    "승한",
+    "SJ",
+    "SVT",
+    "BND",
+    "H2H",
+    "XH"
+  ],
+  "publisher_scores": {
+    "yna.co.kr": 10,
+    "newsis.com": 9,
+    "reuters.com": 10,
+    "mk.co.kr": 8,
+    "hankyung.com": 8,
+    "sedaily.com": 8,
+    "edaily.co.kr": 8,
+    "chosun.com": 7,
+    "joongang.co.kr": 7,
+    "donga.com": 7,
+    "sportschosun.com": 5,
+    "osen.co.kr": 5,
+    "starnewskorea.com": 5
+  },
+  "default_publisher_score": 3
+}
