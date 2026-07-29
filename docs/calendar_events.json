@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-29T15:29:05.281429+09:00",
+  "generatedAt": "2026-07-29T16:08:33.427464+09:00",
   "timezone": "Asia/Seoul",
   "rangeStart": "2026-07-29",
   "rangeEndInclusive": "2026-10-29",
@@ -23,7 +23,7 @@
         "eventName": "레드벨벳, 31일 팬콘 …신곡 '서핀 보이' 최초 공개",
         "cities": "서울",
         "venues": "벳이 팬콘에서 신곡 무대를 최초 공개한다. 레드벨벳은 오는 31일부터 다음 달 2일까지 서울 고려대학교 화정체육관",
-        "status": "NEW_EVENT",
+        "status": "EXISTING_SCHEDULE",
         "score": "70",
         "supportingArticleCount": "1"
       }
@@ -45,7 +45,7 @@
         "eventName": "스트레이 키즈, 새 앨범도 3RACHA 프로듀싱…‘음악 스토리텔러’ 입증",
         "cities": "",
         "venues": "",
-        "status": "NEW_EVENT",
+        "status": "EXISTING_SCHEDULE",
         "score": "66",
         "supportingArticleCount": "4"
       }
