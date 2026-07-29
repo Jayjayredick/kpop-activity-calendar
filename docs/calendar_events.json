@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-07-29T16:08:33.427464+09:00",
+  "generatedAt": "2026-07-30T08:34:14.461327+09:00",
   "timezone": "Asia/Seoul",
-  "rangeStart": "2026-07-29",
-  "rangeEndInclusive": "2026-10-29",
-  "rangeEndExclusive": "2026-10-30",
+  "rangeStart": "2026-07-30",
+  "rangeEndInclusive": "2026-10-30",
+  "rangeEndExclusive": "2026-10-31",
   "eventCount": 2,
   "events": [
     {
@@ -47,7 +47,7 @@
         "venues": "",
         "status": "EXISTING_SCHEDULE",
         "score": "66",
-        "supportingArticleCount": "4"
+        "supportingArticleCount": "2"
       }
     }
   ]
