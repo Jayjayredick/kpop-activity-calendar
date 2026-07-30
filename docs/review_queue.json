@@ -1,7 +1,34 @@
 {
-  "generatedAt": null,
+  "generatedAt": "2026-07-30T09:40:45.031350+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 0,
-  "items": []
+  "pendingCount": 1,
+  "items": [
+    {
+      "candidateId": "a44fac5d163b2712d7d8b3e8",
+      "eventKey": "26c3d31c6ce0c88b1a9ffe31",
+      "company": "SM",
+      "label": "3세대 그룹",
+      "artistId": "nct_127",
+      "artist": "NCT 127",
+      "activityType": "COMEBACK",
+      "activityLabel": "컴백",
+      "eventName": "BLINGY",
+      "eventStartDate": "",
+      "eventEndDate": "",
+      "eventDates": "",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "‘컴백’ NCT 127, 정규 7집 ‘BLINGY’ 스케줄 포스터..프로모션 돌입",
+      "publishedAt": "2026-07-29T10:15:00+09:00",
+      "score": "66",
+      "reviewReason": "DATE_NOT_FOUND",
+      "primaryUrl": "https://www.heraldmuse.com/article/10823932?ref=naver",
+      "naverUrl": "https://m.entertain.naver.com/article/112/0003802798",
+      "supportingArticleCount": "1",
+      "clippedText": "NCT 127(엔시티 127) 정규 7집 ‘BLINGY’(블링이) 스케줄 포스터가 베일을 벗었다. 오늘(29일) 0시 NCT 127 공식 SNS 채널 등에 공개된 정규 7집 ‘BLINGY’ 스케줄 포스터는 무전기 오브제와 ‘CALL 127’(콜 127)...",
+      "firstSeen": "2026-07-30T09:40:45.031350+09:00",
+      "lastSeen": "2026-07-30T09:40:45.031350+09:00"
+    }
+  ]
 }
