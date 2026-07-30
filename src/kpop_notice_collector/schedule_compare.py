@@ -8,7 +8,13 @@ from pathlib import Path
 from .models import Notice
 
 
-TOUR_TYPES = {"TOUR_ANNOUNCEMENT", "TOUR_EXPANSION", "ADDITIONAL_SHOW", "ENCORE"}
+TOUR_TYPES = {
+    "TOUR_ANNOUNCEMENT",
+    "TOUR_EXPANSION",
+    "ADDITIONAL_SHOW",
+    "ENCORE",
+    "CONCERT",
+}
 
 
 def _norm(value: str) -> str:

@@ -10,7 +10,7 @@ from zoneinfo import ZoneInfo
 from kpop_notice_collector.adapters.naver_news import NaverNewsAdapter
 from kpop_notice_collector.calendar_feed import build_calendar_feed
 from kpop_notice_collector.classifier import classify, news_rejection_reason
-from kpop_notice_collector.config import load_artists
+from kpop_notice_collector.config import load_activity_entities, load_artists
 from kpop_notice_collector.event_cluster import cluster_events
 from kpop_notice_collector.event_parser import parse_event_fields
 from kpop_notice_collector.models import Artist, Notice
@@ -20,11 +20,12 @@ from kpop_notice_collector.news_pipeline import (
     title_artist_alias,
 )
 from kpop_notice_collector.qa import compare_manual_truth
+from kpop_notice_collector.review_cli import apply_decisions
 from kpop_notice_collector.schedule_compare import assess_schedule_change
 
 
 class CoreTests(unittest.TestCase):
-    def test_calendar_feed_keeps_only_next_three_months(self):
+    def test_calendar_feed_keeps_previous_two_weeks_and_next_three_months(self):
         tz = ZoneInfo("Asia/Seoul")
         now = datetime(2026, 7, 28, 7, 35, tzinfo=tz)
         rows = [
@@ -35,7 +36,7 @@ class CoreTests(unittest.TestCase):
                 "artist": "Red Velvet",
                 "activity_type": "COMEBACK",
                 "event_name": "New Album",
-                "event_dates": "2026-07-27|2026-07-28|2026-10-28|2026-10-29",
+                "event_dates": "2026-07-13|2026-07-14|2026-10-28|2026-10-29",
                 "primary_url": "https://example.com/rv",
             }
         ]
@@ -43,11 +44,11 @@ class CoreTests(unittest.TestCase):
             path = Path(temp_dir) / "calendar_events.json"
             build_calendar_feed(rows, path, now=now, months=3)
             payload = json.loads(path.read_text(encoding="utf-8"))
-        self.assertEqual(payload["rangeStart"], "2026-07-28")
+        self.assertEqual(payload["rangeStart"], "2026-07-14")
         self.assertEqual(payload["rangeEndInclusive"], "2026-10-28")
         self.assertEqual(
             [event["start"] for event in payload["events"]],
-            ["2026-07-28", "2026-10-28"],
+            ["2026-07-14", "2026-10-28"],
         )
 
     def test_master_counts(self):
@@ -57,6 +58,7 @@ class CoreTests(unittest.TestCase):
             {company: sum(a.company == company for a in artists) for company in ["HYBE", "SM", "JYP", "YG"]},
             {"HYBE": 22, "SM": 16, "JYP": 15, "YG": 6},
         )
+        self.assertGreaterEqual(len(load_activity_entities()), 1)
 
     def test_priority_keyword(self):
         notice = Notice(
@@ -218,6 +220,44 @@ class CoreTests(unittest.TestCase):
             "종료·성료·과거 실적 기사",
         )
 
+    def test_financial_and_poll_context_are_rejected(self):
+        now = datetime.now(ZoneInfo("Asia/Seoul"))
+        financial = Notice(
+            source_id="test",
+            company="HYBE",
+            label="BigHit",
+            artist_id="bts",
+            artist="BTS",
+            title="BTS 컴백 효과…하이브 분기 매출 사상 최대",
+            url="https://example.com/finance",
+            published_at=now,
+            body="",
+            fetched_at=now,
+        )
+        classify(financial, title_only=True)
+        self.assertEqual(
+            news_rejection_reason(financial),
+            "실적·주가·흥행 효과 등 일정 비핵심 기사",
+        )
+
+        poll = Notice(
+            source_id="test",
+            company="SM",
+            label="SM",
+            artist_id="red_velvet",
+            artist="Red Velvet",
+            title="레드벨벳 웬디, 컴백 앞두고 우산 씌워주고 싶은 가수 1위",
+            url="https://example.com/poll",
+            published_at=now,
+            body="",
+            fetched_at=now,
+        )
+        classify(poll, title_only=True)
+        self.assertEqual(
+            news_rejection_reason(poll),
+            "투표·순위·화보·근황 등 일정 비핵심 기사",
+        )
+
     def test_month_day_and_next_month_dates(self):
         published = datetime(2026, 7, 28, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
         notice = Notice(
@@ -237,6 +277,61 @@ class CoreTests(unittest.TestCase):
             notice.event_dates,
             ["2026-08-10", "2026-08-11", "2026-08-12"],
         )
+
+    def test_cross_month_fancon_is_concert_range(self):
+        published = datetime(2026, 7, 29, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+        notice = Notice(
+            source_id="test",
+            company="SM",
+            label="SM",
+            artist_id="red_velvet",
+            artist="Red Velvet",
+            title="레드벨벳, 31일 팬콘 개최",
+            url="https://example.com/fancon",
+            published_at=published,
+            body="오는 31일부터 다음 달 2일까지 서울 고려대학교 화정체육관에서 팬콘을 개최한다.",
+            fetched_at=published,
+            matched_artist_alias="레드벨벳",
+        )
+        classify(notice)
+        parse_event_fields(notice)
+        self.assertEqual(notice.activity_type, "CONCERT")
+        self.assertEqual(notice.event_start_date, "2026-07-31")
+        self.assertEqual(notice.event_end_date, "2026-08-02")
+        self.assertTrue(notice.event_is_range)
+        self.assertIn("고려대학교 화정체육관", notice.venues)
+
+    def test_album_name_drives_duplicate_cluster(self):
+        now = datetime.now(ZoneInfo("Asia/Seoul"))
+        common = {
+            "source_id": "naver_news",
+            "source_type": "NAVER_NEWS",
+            "company": "SM",
+            "label": "SM",
+            "artist_id": "nct_127",
+            "artist": "NCT 127",
+            "published_at": now,
+            "body": "",
+            "fetched_at": now,
+            "activity_type": "COMEBACK",
+            "score": 70,
+            "matched_artist_alias": "NCT 127",
+        }
+        first = Notice(
+            title="NCT 127, 정규 7집 'BLINGY' 컴백 확정",
+            url="https://example.com/nct-a",
+            **common,
+        )
+        second = Notice(
+            title="NCT 127 정규 7집 BLINGY 발매 발표",
+            url="https://example.com/nct-b",
+            **common,
+        )
+        parse_event_fields(first)
+        parse_event_fields(second)
+        clustered = cluster_events([first, second])
+        self.assertEqual(len(clustered), 1)
+        self.assertEqual(clustered[0].event_name, "BLINGY")
 
     def test_schedule_change_detection(self):
         now = datetime.now(ZoneInfo("Asia/Seoul"))
@@ -304,6 +399,7 @@ class CoreTests(unittest.TestCase):
             "body": "",
             "fetched_at": now,
             "activity_type": "COMEBACK",
+            "event_name": "aespa New Album",
             "event_dates": ["2026-08-10"],
         }
         first = Notice(title="aespa 새 앨범 발매", url="https://a.example", **common)
@@ -362,6 +458,55 @@ class CoreTests(unittest.TestCase):
             result = compare_manual_truth(automated, manual)
             self.assertEqual(result["일치"], 1)
             self.assertEqual(result["정밀도"], 1.0)
+
+    def test_review_approval_moves_candidate_to_history(self):
+        now = datetime(2026, 7, 29, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+        queue = [
+            {
+                "candidate_id": "candidate-1",
+                "event_key": "old-key",
+                "company": "SM",
+                "label": "SM",
+                "artist_id": "red_velvet",
+                "artist": "Red Velvet",
+                "activity_type": "CONCERT",
+                "event_name": "Red Velvet FANCON",
+                "event_start_date": "",
+                "event_end_date": "",
+                "cities": "서울",
+                "venues": "",
+                "primary_url": "https://example.com/rv",
+                "score": "70",
+                "article_title": "레드벨벳 팬콘 개최",
+            }
+        ]
+        payload = {
+            "schema": "kpop-calendar-review-v1",
+            "decisions": [
+                {
+                    "action": "APPROVE",
+                    "candidateId": "candidate-1",
+                    "company": "SM",
+                    "artistId": "red_velvet",
+                    "artist": "Red Velvet",
+                    "activityType": "CONCERT",
+                    "eventName": "Red Velvet FANCON",
+                    "eventStartDate": "2026-07-31",
+                    "eventEndDate": "2026-08-02",
+                    "cities": "서울",
+                    "venues": "고려대학교 화정체육관",
+                }
+            ],
+        }
+        history, remaining, logs = apply_decisions(
+            payload, [], queue, now=now
+        )
+        self.assertEqual(len(history), 1)
+        self.assertEqual(remaining, [])
+        self.assertEqual(history[0]["approval_status"], "MANUAL_CONFIRMED")
+        self.assertEqual(history[0]["event_start_date"], "2026-07-31")
+        self.assertEqual(history[0]["event_end_date"], "2026-08-02")
+        self.assertEqual(logs[0]["action"], "APPROVE")
 
 
 if __name__ == "__main__":

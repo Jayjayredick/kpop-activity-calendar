@@ -59,6 +59,9 @@ class Notice:
     publisher_score: int = 0
     event_name: str = ""
     event_dates: list[str] = field(default_factory=list)
+    event_start_date: str = ""
+    event_end_date: str = ""
+    event_is_range: bool = False
     cities: list[str] = field(default_factory=list)
     venues: list[str] = field(default_factory=list)
     schedule_status: str = "UNASSESSED"
@@ -67,6 +70,8 @@ class Notice:
     matched_artist_alias: str = ""
     related_urls: list[str] = field(default_factory=list)
     supporting_article_count: int = 1
+    review_reason: str = ""
+    entity_parent_id: str = ""
 
     @property
     def dedupe_key(self) -> str:
@@ -85,10 +90,26 @@ class Notice:
         import hashlib
         import re
 
-        date_part = ",".join(sorted(self.event_dates))
+        date_part = (
+            f"{self.event_start_date}:{self.event_end_date}"
+            if self.event_start_date
+            else ",".join(sorted(self.event_dates))
+        )
         city_part = ",".join(sorted(self.cities))
         name = re.sub(r"\W+", "", self.event_name or self.title).lower()
-        # 날짜/도시가 있으면 기사 제목 표현이 달라도 같은 캘린더 일정으로 합친다.
-        identity = f"{date_part}|{city_part}" if date_part or city_part else name
+        # 행사명은 같은 날짜의 서로 다른 공연을 분리하고, 날짜가 없는 기사도
+        # 앨범명·투어명 기준으로 안정적으로 묶기 위해 항상 포함한다.
+        identity = f"{name}|{date_part}|{city_part}"
         value = f"{self.artist_id}|{self.activity_type}|{identity}"
+        return hashlib.sha256(value.encode("utf-8")).hexdigest()[:24]
+
+    @property
+    def candidate_id(self) -> str:
+        """검토 과정에서 날짜·유형이 수정되어도 유지되는 후보 식별자."""
+        import hashlib
+        import re
+
+        canonical_url = (self.original_url or self.url).split("#", 1)[0].split("?", 1)[0]
+        anchor = re.sub(r"\W+", "", self.event_name or self.title).lower()
+        value = f"{self.artist_id}|{anchor}|{canonical_url}"
         return hashlib.sha256(value.encode("utf-8")).hexdigest()[:24]

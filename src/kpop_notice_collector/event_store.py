@@ -17,6 +17,8 @@ EVENT_FIELDS = [
     "artist",
     "activity_type",
     "event_name",
+    "event_start_date",
+    "event_end_date",
     "event_dates",
     "cities",
     "venues",
@@ -29,11 +31,72 @@ EVENT_FIELDS = [
     "score",
     "supporting_article_count",
     "related_urls",
+    "approval_status",
+    "article_title",
+    "reviewed_at",
+    "review_source",
 ]
+
+
+def load_event_rows(path: str | Path) -> list[dict]:
+    path = Path(path)
+    if not path.exists() or path.stat().st_size == 0:
+        return []
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        return list(csv.DictReader(handle))
+
+
+def write_event_rows(path: str | Path, rows: list[dict]) -> Path:
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    rows = sorted(
+        rows,
+        key=lambda row: (
+            row.get("event_start_date")
+            or row.get("event_dates")
+            or "9999-99-99",
+            row.get("company", ""),
+            row.get("artist", ""),
+        ),
+    )
+    with path.open("w", encoding="utf-8-sig", newline="") as handle:
+        writer = csv.DictWriter(
+            handle,
+            fieldnames=EVENT_FIELDS,
+            extrasaction="ignore",
+        )
+        writer.writeheader()
+        writer.writerows(rows)
+    return path
 
 
 def _similar(a: str, b: str) -> float:
     return SequenceMatcher(None, (a or "").lower(), (b or "").lower()).ratio()
+
+
+def _matching_history_key(existing: dict[str, dict], notice: Notice) -> str:
+    if notice.event_key in existing:
+        return notice.event_key
+    for key, row in existing.items():
+        if row.get("artist_id") != notice.artist_id:
+            continue
+        if row.get("activity_type") != notice.activity_type:
+            continue
+        row_start = row.get("event_start_date") or (
+            (row.get("event_dates") or "").split("|")[0]
+        )
+        same_start = bool(
+            row_start
+            and notice.event_start_date
+            and row_start == notice.event_start_date
+        )
+        name_similarity = _similar(
+            row.get("event_name", ""),
+            notice.event_name or notice.title,
+        )
+        if (same_start and name_similarity >= 0.25) or name_similarity >= 0.72:
+            return key
+    return notice.event_key
 
 
 def corroborate(news: list[Notice], official: list[Notice]) -> None:
@@ -56,55 +119,79 @@ def upsert_event_history(
 ) -> list[dict]:
     path = Path(path)
     now = now or datetime.now(ZoneInfo("Asia/Seoul"))
-    existing: dict[str, dict] = {}
-    if path.exists():
-        with path.open(encoding="utf-8-sig", newline="") as f:
-            existing = {row["event_key"]: row for row in csv.DictReader(f)}
+    existing = {
+        row["event_key"]: row
+        for row in load_event_rows(path)
+        if row.get("event_key")
+    }
 
     for notice in notices:
-        current = existing.get(notice.event_key, {})
+        history_key = _matching_history_key(existing, notice)
+        current = existing.get(history_key, {})
+        if current.get("approval_status") == "MANUAL_CONFIRMED":
+            current["last_seen"] = now.isoformat()
+            current["score"] = str(
+                max(int(current.get("score") or 0), notice.score)
+            )
+            existing[history_key] = current
+            continue
         current_official = current.get("official_verified") == "Y"
         if current and current_official and not notice.official_verified:
             current["last_seen"] = now.isoformat()
             current["score"] = str(
                 max(int(current.get("score") or 0), notice.score)
             )
-            existing[notice.event_key] = current
+            existing[history_key] = current
             continue
-        existing[notice.event_key] = {
-            "event_key": notice.event_key,
+        all_urls = []
+        for value in [
+            current.get("primary_url", ""),
+            *(current.get("related_urls", "") or "").split("|"),
+            notice.url,
+            *notice.related_urls,
+        ]:
+            if value and value not in all_urls:
+                all_urls.append(value)
+        primary_url = current.get("primary_url") or notice.url
+        related_urls = [value for value in all_urls if value != primary_url]
+        existing[history_key] = {
+            "event_key": history_key,
             "company": notice.company,
             "label": notice.label,
             "artist_id": notice.artist_id,
             "artist": notice.artist,
             "activity_type": notice.activity_type,
             "event_name": notice.event_name or notice.title,
+            "event_start_date": notice.event_start_date,
+            "event_end_date": notice.event_end_date,
             "event_dates": "|".join(notice.event_dates),
             "cities": "|".join(notice.cities),
             "venues": "|".join(notice.venues),
             "first_seen": current.get("first_seen") or now.isoformat(),
             "last_seen": now.isoformat(),
             "status": notice.schedule_status,
-            "primary_url": notice.url,
+            "primary_url": primary_url,
             "source_type": notice.source_type,
             "official_verified": "N/A",
             "score": str(notice.score),
-            "supporting_article_count": str(notice.supporting_article_count),
-            "related_urls": "|".join(notice.related_urls),
+            "supporting_article_count": str(max(1, len(all_urls))),
+            "related_urls": "|".join(related_urls),
+            "approval_status": current.get("approval_status") or "AUTO_CONFIRMED",
+            "article_title": notice.title,
+            "reviewed_at": current.get("reviewed_at", ""),
+            "review_source": current.get("review_source", ""),
         }
     rows = sorted(
         existing.values(),
         key=lambda row: (
-            row.get("event_dates") or "9999-99-99",
+            row.get("event_start_date")
+            or row.get("event_dates")
+            or "9999-99-99",
             row.get("company", ""),
             row.get("artist", ""),
         ),
     )
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with path.open("w", encoding="utf-8-sig", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=EVENT_FIELDS)
-        writer.writeheader()
-        writer.writerows(rows)
+    write_event_rows(path, rows)
     return rows
 
 

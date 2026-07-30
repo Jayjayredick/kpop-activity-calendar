@@ -1,0 +1,104 @@
+name: Backfill K-pop calendar
+
+on:
+  workflow_dispatch:
+    inputs:
+      days_back:
+        description: 과거 기사 조사 기간(일)
+        required: true
+        default: "180"
+        type: string
+      company:
+        description: 조사할 회사
+        required: true
+        default: ALL
+        type: choice
+        options:
+          - ALL
+          - HYBE
+          - SM
+          - JYP
+          - YG
+      publish_review_queue:
+        description: 결과를 웹 검토 대기에 게시
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  actions: read
+
+concurrency:
+  group: calendar-data-write
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Backfill previously announced future events
+        env:
+          NAVER_API_KEY_ID: ${{ secrets.NAVER_API_KEY_ID }}
+          NAVER_API_KEY: ${{ secrets.NAVER_API_KEY }}
+          DAYS_BACK: ${{ inputs.days_back }}
+          COMPANY: ${{ inputs.company }}
+          PUBLISH_QUEUE: ${{ inputs.publish_review_queue }}
+        run: |
+          args=(
+            --days-back "$DAYS_BACK"
+            --out output/backfill_review.xlsx
+          )
+          if [ "$COMPANY" != "ALL" ]; then
+            args+=(--company "$COMPANY")
+          fi
+          if [ "$PUBLISH_QUEUE" = "true" ]; then
+            args+=(--publish-review-queue)
+          fi
+          PYTHONPATH=src python -m kpop_notice_collector.backfill_cli "${args[@]}"
+      - name: Persist review queue
+        if: ${{ inputs.publish_review_queue }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            data/review_queue.csv \
+            docs/calendar_events.json \
+            docs/review_queue.json
+          git diff --cached --quiet || git commit -m "data: publish backfill review queue"
+          git push
+      - uses: actions/upload-artifact@v6
+        with:
+          name: backfill-review-${{ github.run_id }}
+          path: output/backfill_review.xlsx
+          retention-days: 90
+      - uses: actions/configure-pages@v6
+        if: ${{ inputs.publish_review_queue }}
+      - name: Upload GitHub Pages artifact
+        if: ${{ inputs.publish_review_queue }}
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+          retention-days: 1
+
+  deploy-pages:
+    if: ${{ inputs.publish_review_queue }}
+    needs: collect
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy calendar and review queue
+        id: deployment
+        uses: actions/deploy-pages@v5
+

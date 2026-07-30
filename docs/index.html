@@ -10,11 +10,14 @@
     :root {
       color-scheme: light;
       --ink: #172033;
-      --muted: #657087;
+      --muted: #667085;
       --line: #dfe4ec;
-      --surface: #ffffff;
+      --surface: #fff;
       --canvas: #f4f6fa;
       --accent: #2563eb;
+      --danger: #b42318;
+      --success: #067647;
+      --warning: #b54708;
     }
     * { box-sizing: border-box; }
     body {
@@ -24,30 +27,56 @@
       font-family: Inter, Pretendard, -apple-system, BlinkMacSystemFont, "Segoe UI",
         "Noto Sans KR", sans-serif;
     }
-    .shell { width: min(1440px, 100%); margin: 0 auto; padding: 28px; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .shell { width: min(1480px, 100%); margin: 0 auto; padding: 26px; }
     .hero {
       display: flex;
       justify-content: space-between;
       gap: 24px;
       align-items: end;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
-    h1 { margin: 0 0 8px; font-size: clamp(24px, 3vw, 38px); letter-spacing: -.04em; }
-    .subtitle, .updated { margin: 0; color: var(--muted); }
+    h1 { margin: 0 0 7px; font-size: clamp(24px, 3vw, 38px); letter-spacing: -.04em; }
+    h2, h3 { letter-spacing: -.025em; }
+    .subtitle, .updated, .muted { color: var(--muted); }
+    .subtitle, .updated { margin: 0; }
     .updated { white-space: nowrap; font-size: 13px; }
     .panel {
       background: var(--surface);
       border: 1px solid var(--line);
-      border-radius: 18px;
-      box-shadow: 0 12px 35px rgba(31, 41, 55, .06);
+      border-radius: 17px;
+      box-shadow: 0 10px 30px rgba(31, 41, 55, .055);
     }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .stat { padding: 14px 16px; }
+    .stat-label { color: var(--muted); font-size: 12px; font-weight: 700; }
+    .stat-value { margin-top: 4px; font-size: 24px; font-weight: 800; }
+    .tabs { display: flex; gap: 6px; padding: 6px; margin-bottom: 12px; }
+    .tab {
+      flex: 1;
+      border: 0;
+      border-radius: 11px;
+      padding: 10px 14px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 800;
+    }
+    .tab.active { background: var(--ink); color: #fff; }
+    .view { display: none; }
+    .view.active { display: block; }
     .filters {
       display: flex;
       flex-wrap: wrap;
       gap: 10px 18px;
       align-items: center;
       padding: 14px 18px;
-      margin-bottom: 14px;
+      margin-bottom: 12px;
     }
     .filter-group { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
     .filter-title { margin-right: 3px; color: var(--muted); font-size: 12px; font-weight: 700; }
@@ -59,32 +88,137 @@
       color: #4b5567;
       font-size: 12px;
       font-weight: 700;
-      cursor: pointer;
     }
     .chip.active { background: #172033; border-color: #172033; color: #fff; }
-    #calendar { padding: 18px; min-height: 680px; }
-    .empty, .error { display: none; padding: 26px; text-align: center; color: var(--muted); }
-    .fc .fc-toolbar-title { font-size: 21px; }
+    .search {
+      min-width: 210px;
+      flex: 1;
+      max-width: 360px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 8px 10px;
+      background: #fff;
+    }
+    #calendar { padding: 18px; min-height: 660px; }
+    .empty, .error { display: none; padding: 30px; text-align: center; color: var(--muted); }
+    .fc .fc-toolbar-title { font-size: 20px; }
     .fc .fc-button-primary { background: #172033; border-color: #172033; }
     .fc .fc-button-primary:disabled { background: #aab1bf; border-color: #aab1bf; }
-    .fc .fc-daygrid-event { border-radius: 5px; padding: 2px 4px; font-size: 12px; }
+    .fc .fc-daygrid-event { border-radius: 5px; padding: 2px 4px; font-size: 11px; }
     .fc .fc-day-today { background: #eff6ff !important; }
     .legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px 16px;
+      gap: 8px 15px;
       padding: 0 18px 18px;
       color: var(--muted);
       font-size: 12px;
     }
     .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; }
+    .review-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+    .review-head h2 { margin: 0 0 5px; font-size: 20px; }
+    .review-head p { margin: 0; font-size: 13px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 12px;
+      background: #fff;
+      color: var(--ink);
+      font-weight: 800;
+      font-size: 13px;
+    }
+    .btn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .btn.success { background: var(--success); border-color: var(--success); color: #fff; }
+    .btn.danger { color: var(--danger); border-color: #f0b4ae; }
+    .btn:disabled { cursor: not-allowed; opacity: .45; }
+    .review-list { display: grid; gap: 12px; }
+    .review-card { padding: 18px; }
+    .review-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+    .badge {
+      border-radius: 999px;
+      padding: 4px 8px;
+      background: #eef2f7;
+      color: #475467;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .badge.warn { background: #fff4e5; color: var(--warning); }
+    .review-card h3 { margin: 0 0 6px; font-size: 17px; }
+    .article-title { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .field { display: grid; gap: 5px; }
+    .field.span-2 { grid-column: span 2; }
+    .field.span-3 { grid-column: span 3; }
+    .field.span-6 { grid-column: 1 / -1; }
+    .field label { font-size: 11px; color: var(--muted); font-weight: 800; }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 8px 9px;
+      background: #fff;
+      color: var(--ink);
+    }
+    .field textarea { min-height: 68px; resize: vertical; }
+    .card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+    .decision {
+      margin-left: auto;
+      color: var(--success);
+      align-self: center;
+      font-weight: 800;
+      font-size: 12px;
+    }
+    .manual { margin-top: 12px; padding: 18px; }
+    .manual summary { cursor: pointer; font-weight: 800; }
+    .manual .form-grid { margin-top: 14px; }
+    dialog {
+      width: min(680px, calc(100% - 24px));
+      border: 0;
+      border-radius: 16px;
+      padding: 0;
+      box-shadow: 0 30px 80px rgba(15, 23, 42, .25);
+    }
+    dialog::backdrop { background: rgba(15, 23, 42, .5); }
+    .modal-body { padding: 20px; }
+    .modal-body h2 { margin: 0 0 14px; }
+    .modal-actions { display: flex; gap: 8px; justify-content: flex-end; padding-top: 14px; }
+    .notice {
+      margin-top: 12px;
+      padding: 11px 13px;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: #344054;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+    @media (max-width: 900px) {
+      .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .field.span-2, .field.span-3 { grid-column: span 2; }
+      .field.span-6 { grid-column: 1 / -1; }
+    }
     @media (max-width: 720px) {
-      .shell { padding: 16px 10px; }
-      .hero { display: block; }
-      .updated { margin-top: 8px; }
-      #calendar { padding: 10px; min-height: 620px; }
-      .fc .fc-toolbar { align-items: flex-start; gap: 8px; }
-      .fc .fc-toolbar-title { font-size: 17px; }
+      .shell { padding: 14px 9px; }
+      .hero, .review-head { display: block; }
+      .updated, .review-head .actions { margin-top: 9px; }
+      .stats { grid-template-columns: 1fr 1fr 1fr; }
+      .stat { padding: 11px; }
+      .stat-value { font-size: 19px; }
+      #calendar { padding: 9px; min-height: 600px; }
+      .fc .fc-toolbar { align-items: flex-start; gap: 7px; }
+      .fc .fc-toolbar-title { font-size: 16px; }
+      .decision { width: 100%; margin-left: 0; }
     }
   </style>
 </head>
@@ -93,35 +227,96 @@
     <section class="hero">
       <div>
         <h1>4사 K-pop 활동 캘린더</h1>
-        <p class="subtitle">HYBE · SM · JYP · YG · 오늘부터 향후 3개월</p>
+        <p class="subtitle">HYBE · SM · JYP · YG · 과거 2주부터 향후 3개월</p>
       </div>
       <p class="updated" id="updated">데이터 불러오는 중…</p>
     </section>
 
-    <section class="filters panel" aria-label="캘린더 필터">
-      <div class="filter-group" id="company-filters">
-        <span class="filter-title">회사</span>
-      </div>
-      <div class="filter-group" id="activity-filters">
-        <span class="filter-title">활동</span>
-      </div>
+    <section class="stats">
+      <div class="stat panel"><div class="stat-label">확정 일정</div><div class="stat-value" id="stat-confirmed">-</div></div>
+      <div class="stat panel"><div class="stat-label">검토 대기</div><div class="stat-value" id="stat-pending">-</div></div>
+      <div class="stat panel"><div class="stat-label">작성한 결정</div><div class="stat-value" id="stat-decisions">0</div></div>
     </section>
 
-    <section class="panel">
-      <div id="calendar"></div>
-      <div class="empty" id="empty">선택한 조건에 해당하는 일정이 없습니다.</div>
-      <div class="error" id="error">캘린더 데이터를 불러오지 못했습니다.</div>
-      <div class="legend">
-        <span><i class="dot" style="background:#2563eb"></i>컴백</span>
-        <span><i class="dot" style="background:#7c3aed"></i>투어 발표</span>
-        <span><i class="dot" style="background:#9333ea"></i>투어 확장</span>
-        <span><i class="dot" style="background:#dc2626"></i>추가 회차</span>
-        <span><i class="dot" style="background:#ea580c"></i>앙코르</span>
-        <span><i class="dot" style="background:#059669"></i>팬미팅</span>
-        <span><i class="dot" style="background:#ca8a04"></i>팝업</span>
+    <nav class="tabs panel" aria-label="화면 선택">
+      <button type="button" class="tab active" data-view="calendar-view">확정 캘린더</button>
+      <button type="button" class="tab" data-view="review-view">검토 대기 및 수정</button>
+    </nav>
+
+    <section class="view active" id="calendar-view">
+      <section class="filters panel" aria-label="캘린더 필터">
+        <div class="filter-group" id="company-filters"><span class="filter-title">회사</span></div>
+        <div class="filter-group" id="activity-filters"><span class="filter-title">활동</span></div>
+        <input class="search" id="event-search" type="search" placeholder="아티스트·행사명 검색">
+      </section>
+      <section class="panel">
+        <div id="calendar"></div>
+        <div class="empty" id="empty">선택한 조건에 해당하는 일정이 없습니다.</div>
+        <div class="error" id="error">캘린더 데이터를 불러오지 못했습니다.</div>
+        <div class="legend" id="legend"></div>
+      </section>
+    </section>
+
+    <section class="view" id="review-view">
+      <section class="review-head panel">
+        <div>
+          <h2>검토 대기</h2>
+          <p class="muted">내용을 수정한 뒤 확정 또는 제외를 선택하세요. 작성한 결정은 이 브라우저에 임시 저장됩니다.</p>
+        </div>
+        <div class="actions">
+          <button type="button" class="btn" id="download-decisions">결정 JSON 다운로드</button>
+          <button type="button" class="btn primary" id="submit-decisions">GitHub에 반영 요청</button>
+        </div>
+      </section>
+      <div class="review-list" id="review-list"></div>
+      <div class="empty panel" id="review-empty">현재 검토 대기 항목이 없습니다.</div>
+
+      <details class="manual panel">
+        <summary>일정 직접 추가</summary>
+        <form id="manual-form" class="form-grid">
+          <div class="field"><label>회사</label><select name="company" required></select></div>
+          <div class="field"><label>활동 유형</label><select name="activityType" required></select></div>
+          <div class="field span-2"><label>아티스트</label><input name="artist" required></div>
+          <div class="field span-2"><label>행사명</label><input name="eventName" required></div>
+          <div class="field"><label>시작일</label><input name="eventStartDate" type="date" required></div>
+          <div class="field"><label>종료일</label><input name="eventEndDate" type="date"></div>
+          <div class="field span-2"><label>도시</label><input name="cities"></div>
+          <div class="field span-2"><label>공연장</label><input name="venues"></div>
+          <div class="field span-3"><label>출처 URL</label><input name="primaryUrl" type="url"></div>
+          <div class="field span-3"><label>메모</label><input name="note"></div>
+          <div class="field span-6"><button class="btn success" type="submit">직접 추가 결정에 넣기</button></div>
+        </form>
+      </details>
+      <div class="notice">
+        보안상 이 페이지에는 GitHub 토큰을 저장하지 않습니다. “GitHub에 반영 요청”을 누르면 저장소 소유자 계정으로 제출하는 검토 이슈가 열리고, 소유자가 제출한 요청만 자동 반영됩니다.
       </div>
     </section>
   </main>
+
+  <dialog id="event-dialog">
+    <form method="dialog" class="modal-body" id="event-edit-form">
+      <h2>확정 일정 수정</h2>
+      <input type="hidden" name="eventKey">
+      <div class="form-grid">
+        <div class="field"><label>회사</label><select name="company"></select></div>
+        <div class="field"><label>활동 유형</label><select name="activityType"></select></div>
+        <div class="field span-2"><label>아티스트</label><input name="artist" required></div>
+        <div class="field span-2"><label>행사명</label><input name="eventName" required></div>
+        <div class="field"><label>시작일</label><input name="eventStartDate" type="date" required></div>
+        <div class="field"><label>종료일</label><input name="eventEndDate" type="date"></div>
+        <div class="field span-2"><label>도시</label><input name="cities"></div>
+        <div class="field span-2"><label>공연장</label><input name="venues"></div>
+        <div class="field span-3"><label>출처 URL</label><input name="primaryUrl" type="url"></div>
+        <div class="field span-3"><label>메모</label><input name="note"></div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn" id="open-source">기사 열기</button>
+        <button type="button" class="btn danger" id="delete-event">삭제 요청</button>
+        <button type="button" class="btn" id="close-dialog">닫기</button>
+        <button type="submit" class="btn primary">수정 요청 저장</button>
+      </div>
+    </form>
+  </dialog>
 
   <script>
     const activityLabels = {
@@ -130,15 +325,56 @@
       TOUR_EXPANSION: "투어 확장",
       ADDITIONAL_SHOW: "추가 회차",
       ENCORE: "앙코르",
+      CONCERT: "콘서트",
       FANMEETING: "팬미팅",
       POPUP: "팝업"
+    };
+    const activityColors = {
+      COMEBACK: "#2563eb",
+      TOUR_ANNOUNCEMENT: "#7c3aed",
+      TOUR_EXPANSION: "#9333ea",
+      ADDITIONAL_SHOW: "#dc2626",
+      ENCORE: "#ea580c",
+      CONCERT: "#0f766e",
+      FANMEETING: "#059669",
+      POPUP: "#ca8a04"
     };
     const companies = ["HYBE", "SM", "JYP", "YG"];
     const activities = Object.keys(activityLabels);
     const selectedCompanies = new Set(companies);
-    const selectedActivities = new Set(["COMEBACK"]);
+    const selectedActivities = new Set(activities);
+    const storageKey = "kpop-calendar-review-decisions-v1";
     let calendar;
     let allEvents = [];
+    let reviewItems = [];
+    let repository = "";
+    let currentEvent = null;
+    const decisions = new Map(
+      (JSON.parse(localStorage.getItem(storageKey) || "[]"))
+        .map(item => [item.candidateId || item.eventKey || crypto.randomUUID(), item])
+    );
+
+    function escapeHtml(value) {
+      return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
+      }[char]));
+    }
+
+    function persistDecisions() {
+      localStorage.setItem(storageKey, JSON.stringify([...decisions.values()]));
+      document.getElementById("stat-decisions").textContent = decisions.size;
+      document.querySelectorAll("[data-decision-state]").forEach(el => {
+        const key = el.dataset.decisionState;
+        const item = decisions.get(key);
+        el.textContent = item ? `${item.action} 저장됨` : "";
+      });
+    }
+
+    function addOptions(select, values, labels = {}) {
+      select.innerHTML = values.map(value =>
+        `<option value="${escapeHtml(value)}">${escapeHtml(labels[value] || value)}</option>`
+      ).join("");
+    }
 
     function addChips(containerId, values, selected, labels = {}) {
       const container = document.getElementById(containerId);
@@ -159,38 +395,281 @@
     }
 
     function filteredEvents() {
-      return allEvents.filter(event =>
-        selectedCompanies.has(event.extendedProps.company) &&
-        selectedActivities.has(event.extendedProps.activityType)
-      );
+      const query = document.getElementById("event-search").value.trim().toLowerCase();
+      return allEvents.filter(event => {
+        const props = event.extendedProps;
+        const searchable = `${props.artist} ${props.eventName} ${event.title}`.toLowerCase();
+        return selectedCompanies.has(props.company) &&
+          selectedActivities.has(props.activityType) &&
+          (!query || searchable.includes(query));
+      });
     }
 
     function updateEmptyState() {
-      const empty = document.getElementById("empty");
-      const visible = filteredEvents().length === 0;
-      empty.style.display = visible ? "block" : "none";
+      document.getElementById("empty").style.display =
+        filteredEvents().length === 0 ? "block" : "none";
+    }
+
+    function switchView(id) {
+      document.querySelectorAll(".tab").forEach(tab =>
+        tab.classList.toggle("active", tab.dataset.view === id)
+      );
+      document.querySelectorAll(".view").forEach(view =>
+        view.classList.toggle("active", view.id === id)
+      );
+      if (id === "calendar-view" && calendar) setTimeout(() => calendar.updateSize(), 0);
+    }
+
+    function reviewCard(item) {
+      const key = item.candidateId;
+      return `
+        <article class="review-card panel" data-card="${escapeHtml(key)}">
+          <div class="review-meta">
+            <span class="badge">${escapeHtml(item.company)}</span>
+            <span class="badge">${escapeHtml(item.activityLabel)}</span>
+            <span class="badge warn">${escapeHtml(item.reviewReason || "검토 필요")}</span>
+            <span class="badge">관련 기사 ${escapeHtml(item.supportingArticleCount || "1")}건</span>
+          </div>
+          <h3>${escapeHtml(item.artist)} · ${escapeHtml(item.eventName || item.activityLabel)}</h3>
+          <p class="article-title">${escapeHtml(item.articleTitle)}</p>
+          <div class="form-grid">
+            <div class="field"><label>회사</label><select name="company"></select></div>
+            <div class="field"><label>활동 유형</label><select name="activityType"></select></div>
+            <div class="field span-2"><label>아티스트</label><input name="artist" value="${escapeHtml(item.artist)}"></div>
+            <div class="field span-2"><label>행사명</label><input name="eventName" value="${escapeHtml(item.eventName)}"></div>
+            <div class="field"><label>시작일</label><input name="eventStartDate" type="date" value="${escapeHtml(item.eventStartDate)}"></div>
+            <div class="field"><label>종료일</label><input name="eventEndDate" type="date" value="${escapeHtml(item.eventEndDate)}"></div>
+            <div class="field span-2"><label>도시</label><input name="cities" value="${escapeHtml(item.cities)}"></div>
+            <div class="field span-2"><label>공연장</label><input name="venues" value="${escapeHtml(item.venues)}"></div>
+            <div class="field span-6"><label>기사 근거</label><textarea readonly>${escapeHtml(item.clippedText)}</textarea></div>
+          </div>
+          <div class="card-actions">
+            <a class="btn" href="${escapeHtml(item.primaryUrl)}" target="_blank" rel="noopener">기사 열기</a>
+            <button type="button" class="btn success" data-action="APPROVE">수정 내용으로 확정</button>
+            <button type="button" class="btn danger" data-action="REJECT">일정에서 제외</button>
+            <span class="decision" data-decision-state="${escapeHtml(key)}"></span>
+          </div>
+        </article>`;
+    }
+
+    function cardDecision(card, item, action) {
+      if (action === "REJECT") {
+        decisions.set(item.candidateId, {
+          action, candidateId: item.candidateId, eventKey: item.eventKey,
+          artist: item.artist, activityType: item.activityType, eventName: item.eventName
+        });
+        persistDecisions();
+        return;
+      }
+      const get = name => card.querySelector(`[name="${name}"]`).value.trim();
+      const start = get("eventStartDate");
+      if (!start) {
+        alert("확정하려면 시작일을 입력해야 합니다.");
+        return;
+      }
+      decisions.set(item.candidateId, {
+        action: "APPROVE",
+        candidateId: item.candidateId,
+        eventKey: item.eventKey,
+        company: get("company"),
+        artistId: item.artistId,
+        artist: get("artist"),
+        activityType: get("activityType"),
+        eventName: get("eventName"),
+        eventStartDate: start,
+        eventEndDate: get("eventEndDate") || start,
+        cities: get("cities"),
+        venues: get("venues"),
+        primaryUrl: item.primaryUrl
+      });
+      persistDecisions();
+    }
+
+    function renderReviewItems() {
+      const list = document.getElementById("review-list");
+      const empty = document.getElementById("review-empty");
+      list.innerHTML = reviewItems.map(reviewCard).join("");
+      empty.style.display = reviewItems.length ? "none" : "block";
+      reviewItems.forEach(item => {
+        const card = list.querySelector(`[data-card="${CSS.escape(item.candidateId)}"]`);
+        addOptions(card.querySelector('[name="company"]'), companies);
+        card.querySelector('[name="company"]').value = item.company;
+        addOptions(card.querySelector('[name="activityType"]'), activities, activityLabels);
+        card.querySelector('[name="activityType"]').value = item.activityType;
+        card.querySelectorAll("[data-action]").forEach(button =>
+          button.addEventListener("click", () => cardDecision(card, item, button.dataset.action))
+        );
+      });
+      persistDecisions();
+    }
+
+    function issuePayload() {
+      return {
+        schema: "kpop-calendar-review-v1",
+        generatedAt: new Date().toISOString(),
+        decisions: [...decisions.values()]
+      };
+    }
+
+    function downloadJson() {
+      if (!decisions.size) return alert("먼저 확정·제외·수정 결정을 작성하세요.");
+      const blob = new Blob([JSON.stringify(issuePayload(), null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `calendar_review_${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function submitToGitHub() {
+      if (!decisions.size) return alert("먼저 확정·제외·수정 결정을 작성하세요.");
+      if (!repository) return alert("저장소 주소가 설정되지 않았습니다.");
+      const body = [
+        "캘린더 웹 검토 결과입니다.",
+        "",
+        "아래 JSON 블록은 자동 반영 워크플로가 사용합니다.",
+        "",
+        "```json",
+        JSON.stringify(issuePayload(), null, 2),
+        "```"
+      ].join("\n");
+      const title = `[CALENDAR REVIEW] ${new Date().toISOString().slice(0, 10)} ${decisions.size}건`;
+      const url = `https://github.com/${repository}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+      window.open(url, "_blank", "noopener");
+    }
+
+    function openEventDialog(event) {
+      currentEvent = event;
+      const props = event.extendedProps;
+      const form = document.getElementById("event-edit-form");
+      form.eventKey.value = props.eventKey || event.id;
+      form.company.value = props.company;
+      form.activityType.value = props.activityType;
+      form.artist.value = props.artist;
+      form.eventName.value = props.eventName;
+      form.eventStartDate.value = props.eventStartDate || event.startStr.slice(0, 10);
+      form.eventEndDate.value = props.eventEndDate || form.eventStartDate.value;
+      form.cities.value = props.cities || "";
+      form.venues.value = props.venues || "";
+      form.primaryUrl.value = props.primaryUrl || event.url || "";
+      form.note.value = "";
+      document.getElementById("event-dialog").showModal();
+    }
+
+    function saveEventDecision(action) {
+      if (!currentEvent) return;
+      const form = document.getElementById("event-edit-form");
+      const eventKey = form.eventKey.value;
+      if (action === "DELETE") {
+        decisions.set(eventKey, {
+          action, eventKey, artist: form.artist.value,
+          activityType: form.activityType.value, eventName: form.eventName.value
+        });
+      } else {
+        if (!form.eventStartDate.value) return alert("시작일이 필요합니다.");
+        decisions.set(eventKey, {
+          action: "UPDATE",
+          eventKey,
+          company: form.company.value,
+          artistId: currentEvent.extendedProps.artistId || "",
+          artist: form.artist.value.trim(),
+          activityType: form.activityType.value,
+          eventName: form.eventName.value.trim(),
+          eventStartDate: form.eventStartDate.value,
+          eventEndDate: form.eventEndDate.value || form.eventStartDate.value,
+          cities: form.cities.value.trim(),
+          venues: form.venues.value.trim(),
+          primaryUrl: form.primaryUrl.value.trim(),
+          note: form.note.value.trim()
+        });
+      }
+      persistDecisions();
+      document.getElementById("event-dialog").close();
+      alert("수정 결정에 저장했습니다. 검토 화면에서 GitHub 반영 요청을 제출하세요.");
     }
 
     async function start() {
       addChips("company-filters", companies, selectedCompanies);
       addChips("activity-filters", activities, selectedActivities, activityLabels);
+      document.getElementById("legend").innerHTML = activities.map(value =>
+        `<span><i class="dot" style="background:${activityColors[value]}"></i>${activityLabels[value]}</span>`
+      ).join("");
+      document.querySelectorAll(".tab").forEach(tab =>
+        tab.addEventListener("click", () => switchView(tab.dataset.view))
+      );
+      document.getElementById("event-search").addEventListener("input", () => calendar.refetchEvents());
+      document.getElementById("download-decisions").addEventListener("click", downloadJson);
+      document.getElementById("submit-decisions").addEventListener("click", submitToGitHub);
+
+      document.querySelectorAll('#manual-form select[name="company"], #event-edit-form select[name="company"]')
+        .forEach(select => addOptions(select, companies));
+      document.querySelectorAll('#manual-form select[name="activityType"], #event-edit-form select[name="activityType"]')
+        .forEach(select => addOptions(select, activities, activityLabels));
+
+      document.getElementById("manual-form").addEventListener("submit", event => {
+        event.preventDefault();
+        const data = Object.fromEntries(new FormData(event.currentTarget));
+        const key = `create-${crypto.randomUUID()}`;
+        decisions.set(key, {
+          action: "CREATE",
+          company: data.company,
+          artistId: "",
+          artist: data.artist.trim(),
+          activityType: data.activityType,
+          eventName: data.eventName.trim(),
+          eventStartDate: data.eventStartDate,
+          eventEndDate: data.eventEndDate || data.eventStartDate,
+          cities: data.cities.trim(),
+          venues: data.venues.trim(),
+          primaryUrl: data.primaryUrl.trim(),
+          note: data.note.trim()
+        });
+        persistDecisions();
+        event.currentTarget.reset();
+        alert("직접 추가 결정을 저장했습니다.");
+      });
+
+      const dialog = document.getElementById("event-dialog");
+      document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
+      document.getElementById("delete-event").addEventListener("click", () => saveEventDecision("DELETE"));
+      document.getElementById("open-source").addEventListener("click", () => {
+        const url = document.getElementById("event-edit-form").primaryUrl.value;
+        if (url) window.open(url, "_blank", "noopener");
+      });
+      document.getElementById("event-edit-form").addEventListener("submit", event => {
+        event.preventDefault();
+        saveEventDecision("UPDATE");
+      });
+
       try {
-        const response = await fetch(`calendar_events.json?t=${Date.now()}`);
-        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        const payload = await response.json();
+        const [calendarResponse, reviewResponse] = await Promise.all([
+          fetch(`calendar_events.json?t=${Date.now()}`),
+          fetch(`review_queue.json?t=${Date.now()}`)
+        ]);
+        if (!calendarResponse.ok) throw new Error(`calendar HTTP ${calendarResponse.status}`);
+        const payload = await calendarResponse.json();
+        const reviewPayload = reviewResponse.ok ? await reviewResponse.json() : { items: [] };
         allEvents = payload.events || [];
+        reviewItems = reviewPayload.items || [];
+        repository = payload.repository || reviewPayload.repository || "";
+        document.getElementById("stat-confirmed").textContent = payload.eventCount || 0;
+        document.getElementById("stat-pending").textContent = reviewItems.length;
+        renderReviewItems();
+
         const generated = payload.generatedAt
           ? new Intl.DateTimeFormat("ko-KR", {
               dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Seoul"
             }).format(new Date(payload.generatedAt))
           : "아직 실행되지 않음";
-        document.getElementById("updated").textContent =
-          `마지막 업데이트 ${generated} · 전체 ${payload.eventCount || 0}건`;
+        document.getElementById("updated").textContent = `마지막 업데이트 ${generated}`;
 
+        const today = new Date().toISOString().slice(0, 10);
+        const upcoming = allEvents.map(event => event.start).filter(value => value >= today).sort()[0];
         calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
           locale: "ko",
           initialView: window.innerWidth < 720 ? "listMonth" : "dayGridMonth",
-          initialDate: payload.rangeStart || undefined,
+          initialDate: upcoming || today,
           validRange: payload.rangeStart && payload.rangeEndExclusive
             ? { start: payload.rangeStart, end: payload.rangeEndExclusive }
             : undefined,
@@ -208,24 +687,23 @@
           },
           eventClick: info => {
             info.jsEvent.preventDefault();
-            if (info.event.url) window.open(info.event.url, "_blank", "noopener");
+            openEventDialog(info.event);
           },
           eventDidMount: info => {
             const p = info.event.extendedProps;
-            const detail = [
-              p.eventName,
-              p.cities,
-              p.venues,
+            info.el.title = [
+              p.activityLabel, p.cities, p.venues,
               p.supportingArticleCount ? `관련 기사 ${p.supportingArticleCount}건` : ""
             ].filter(Boolean).join(" · ");
-            info.el.title = detail;
           }
         });
         calendar.render();
+        persistDecisions();
       } catch (error) {
         document.getElementById("calendar").style.display = "none";
         document.getElementById("error").style.display = "block";
         document.getElementById("updated").textContent = "업데이트 상태 확인 필요";
+        console.error(error);
       }
     }
     document.addEventListener("DOMContentLoaded", start);

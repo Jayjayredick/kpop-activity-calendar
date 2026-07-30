@@ -12,13 +12,13 @@ permissions:
   actions: read
 
 concurrency:
-  group: daily-kpop-activity
+  group: calendar-data-write
   cancel-in-progress: false
 
 jobs:
   collect:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -26,7 +26,7 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
-      - name: Collect NAVER news from the previous 24 hours
+      - name: Collect and classify NAVER news from the previous 24 hours
         env:
           NAVER_API_KEY_ID: ${{ secrets.NAVER_API_KEY_ID }}
           NAVER_API_KEY: ${{ secrets.NAVER_API_KEY }}
@@ -39,7 +39,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/events_history.csv data/daily_collected.csv docs/calendar_events.json
+          git add \
+            data/events_history.csv \
+            data/daily_collected.csv \
+            data/review_queue.csv \
+            docs/calendar_events.json \
+            docs/review_queue.json
           git diff --cached --quiet || git commit -m "data: update daily activity tracker"
           git push
       - uses: actions/upload-artifact@v6
@@ -53,6 +58,7 @@ jobs:
         with:
           path: docs
           retention-days: 1
+
   deploy-pages:
     needs: collect
     runs-on: ubuntu-latest

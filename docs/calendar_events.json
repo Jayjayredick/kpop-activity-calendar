@@ -1,54 +1,11 @@
 {
-  "generatedAt": "2026-07-30T08:34:14.461327+09:00",
+  "generatedAt": null,
   "timezone": "Asia/Seoul",
-  "rangeStart": "2026-07-30",
-  "rangeEndInclusive": "2026-10-30",
-  "rangeEndExclusive": "2026-10-31",
-  "eventCount": 2,
-  "events": [
-    {
-      "id": "f274f1e74e1c22ad808e3925:2026-08-02",
-      "groupId": "f274f1e74e1c22ad808e3925",
-      "title": "Red Velvet · 팬미팅",
-      "start": "2026-08-02",
-      "allDay": true,
-      "color": "#059669",
-      "url": "http://www.dispatch.co.kr/2345754",
-      "extendedProps": {
-        "company": "SM",
-        "label": "3세대 그룹",
-        "artist": "Red Velvet",
-        "activityType": "FANMEETING",
-        "activityLabel": "팬미팅",
-        "eventName": "레드벨벳, 31일 팬콘 …신곡 '서핀 보이' 최초 공개",
-        "cities": "서울",
-        "venues": "벳이 팬콘에서 신곡 무대를 최초 공개한다. 레드벨벳은 오는 31일부터 다음 달 2일까지 서울 고려대학교 화정체육관",
-        "status": "EXISTING_SCHEDULE",
-        "score": "70",
-        "supportingArticleCount": "1"
-      }
-    },
-    {
-      "id": "3dd4de9485a437e7b7984507:2026-08-07",
-      "groupId": "3dd4de9485a437e7b7984507",
-      "title": "Stray Kids · 컴백",
-      "start": "2026-08-07",
-      "allDay": true,
-      "color": "#2563eb",
-      "url": "https://www.newsen.com/news_view.php?uid=202607291148012410",
-      "extendedProps": {
-        "company": "JYP",
-        "label": "4세대 그룹",
-        "artist": "Stray Kids",
-        "activityType": "COMEBACK",
-        "activityLabel": "컴백",
-        "eventName": "스트레이 키즈, 새 앨범도 3RACHA 프로듀싱…‘음악 스토리텔러’ 입증",
-        "cities": "",
-        "venues": "",
-        "status": "EXISTING_SCHEDULE",
-        "score": "66",
-        "supportingArticleCount": "2"
-      }
-    }
-  ]
+  "rangeStart": "2026-07-15",
+  "rangeEndInclusive": "2026-10-29",
+  "rangeEndExclusive": "2026-10-30",
+  "eventCount": 0,
+  "pendingCount": 0,
+  "repository": "jayjayredick/kpop-activity-calendar",
+  "events": []
 }

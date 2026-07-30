@@ -96,6 +96,7 @@ def run_pipeline(
 
 def notice_to_row(notice: Notice) -> dict:
     return {
+        "candidate_id": notice.candidate_id,
         "event_key": notice.event_key,
         "수집 채널": notice.source_type,
         "회사": notice.company,
@@ -109,6 +110,8 @@ def notice_to_row(notice: Notice) -> dict:
         "게시일": notice.published_at.isoformat() if notice.published_at else "",
         "제목": notice.title,
         "행사명": notice.event_name,
+        "시작일": notice.event_start_date,
+        "종료일": notice.event_end_date,
         "이벤트 날짜": "|".join(notice.event_dates),
         "도시": "|".join(notice.cities),
         "공연장": "|".join(notice.venues),
@@ -124,6 +127,7 @@ def notice_to_row(notice: Notice) -> dict:
         ),
         "검색어": notice.search_query,
         "검증 상태": notice.validation_status,
+        "검토 사유": notice.review_reason,
         "제목 매칭 별칭": notice.matched_artist_alias,
         "관련 기사 수": notice.supporting_article_count,
         "관련 기사 URL": "|".join(notice.related_urls),
