@@ -4,13 +4,14 @@ import json
 import re
 from collections import Counter
 from datetime import datetime, timedelta
+from difflib import SequenceMatcher
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .adapters.naver_news import NaverNewsAdapter
 from .classifier import classify, news_rejection_reason
 from .event_parser import parse_event_fields
-from .models import Artist, Notice
+from .models import Artist, Notice, canonicalize_url
 from .schedule_compare import assess_schedule_change
 
 
@@ -164,6 +165,7 @@ def run_naver_news(
 
     backfill = mode == "backfill"
     auto_publish_min_score = int(config.get("auto_publish_min_score", 65))
+    auto_publish_enabled = bool(config.get("auto_publish_enabled", False))
 
     for index, artist in enumerate(selected, start=1):
         queries = _queries_for_artist(artist, config, backfill=backfill)
@@ -206,7 +208,9 @@ def run_naver_news(
                         continue
                     if published_kst > now + timedelta(minutes=10):
                         continue
-                    canonical = (notice.original_url or notice.url).split("#", 1)[0]
+                    canonical = canonicalize_url(
+                        notice.original_url or notice.url
+                    )
                     if canonical in seen_urls:
                         continue
                     seen_urls.add(canonical)
@@ -243,15 +247,25 @@ def run_naver_news(
             if backfill:
                 notice.validation_status = "REVIEW_REQUIRED"
                 notice.review_reason = "BACKFILL_CANDIDATE"
-            elif notice.event_dates and notice.score >= auto_publish_min_score:
+            elif (
+                auto_publish_enabled
+                and notice.event_dates
+                and notice.date_confidence == "HIGH"
+                and notice.date_source == "TITLE"
+                and not notice.date_conflict
+                and notice.score >= auto_publish_min_score
+            ):
                 notice.validation_status = "AUTO_SELECTED"
             else:
                 notice.validation_status = "REVIEW_REQUIRED"
-                notice.review_reason = (
-                    "DATE_NOT_FOUND"
-                    if not notice.event_dates
-                    else "LOW_CONFIDENCE"
-                )
+                if notice.date_conflict:
+                    notice.review_reason = "DATE_CONFLICT"
+                elif not notice.event_dates:
+                    notice.review_reason = "DATE_NOT_FOUND"
+                elif notice.date_confidence != "HIGH":
+                    notice.review_reason = "DATE_LOW_CONFIDENCE"
+                else:
+                    notice.review_reason = "MANUAL_APPROVAL_REQUIRED"
             accepted.append(notice)
 
         run_log.append(
@@ -331,7 +345,28 @@ def enrich_undated_events(
         min(int(config.get("date_enrichment_display", 30)), 100),
     )
     logs: list[dict] = []
-    candidates = [notice for notice in notices if not notice.event_dates][:limit]
+    candidates = [
+        notice
+        for notice in notices
+        if not notice.event_dates and not notice.date_conflict
+    ][:limit]
+
+    def event_anchor(value: str) -> str:
+        value = re.sub(
+            r"\b(?:컴백|신보|앨범|발매|개최|발표|공식|투어|콘서트|"
+            r"팬미팅|팬콘서트|팝업스토어)\b",
+            " ",
+            value.lower(),
+        )
+        return re.sub(r"[^0-9a-z가-힣♥]+", "", value)
+
+    def same_event_name(left: str, right: str) -> bool:
+        left_anchor, right_anchor = event_anchor(left), event_anchor(right)
+        if len(left_anchor) < 4 or len(right_anchor) < 4:
+            return False
+        if left_anchor == right_anchor:
+            return True
+        return SequenceMatcher(None, left_anchor, right_anchor).ratio() >= 0.82
 
     for notice in candidates:
         artist = by_id.get(notice.artist_id)
@@ -366,40 +401,72 @@ def enrich_undated_events(
             row.matched_artist_alias = matched_alias
             row.activity_type = notice.activity_type
             parse_event_fields(row)
-            if row.event_dates:
+            if (
+                row.event_dates
+                and not row.date_conflict
+                and row.date_confidence in {"HIGH", "MEDIUM"}
+                and same_event_name(notice.event_name, row.event_name)
+            ):
                 found.append(row)
 
         if found:
-            notice.event_dates = sorted(
-                {value for row in found for value in row.event_dates}
-            )
-            ranges = sorted(
-                {
-                    (row.event_start_date, row.event_end_date)
-                    for row in found
-                    if row.event_start_date
-                }
-            )
-            if ranges:
-                notice.event_start_date = ranges[0][0]
-                notice.event_end_date = ranges[0][1] or ranges[0][0]
-                notice.event_is_range = (
-                    notice.event_start_date != notice.event_end_date
+            by_range: dict[tuple[str, str], list[Notice]] = {}
+            for row in found:
+                key = (
+                    row.event_start_date,
+                    row.event_end_date or row.event_start_date,
                 )
+                by_range.setdefault(key, []).append(row)
+            ranked = sorted(
+                by_range.items(),
+                key=lambda item: (
+                    len(item[1]),
+                    max(row.score for row in item[1]),
+                ),
+                reverse=True,
+            )
+            winner_key, winner_rows = ranked[0]
+            tied = (
+                len(ranked) > 1
+                and len(ranked[0][1]) == len(ranked[1][1])
+                and ranked[0][0] != ranked[1][0]
+            )
+            if tied:
+                notice.date_conflict = True
+                notice.date_confidence = "CONFLICT"
+                notice.review_reason = "DATE_ENRICHMENT_CONFLICT"
+                winner_rows = []
+            else:
+                best = max(
+                    winner_rows,
+                    key=lambda row: (
+                        row.date_confidence == "HIGH",
+                        row.date_source == "TITLE",
+                        row.score,
+                    ),
+                )
+                notice.event_dates = list(best.event_dates)
+                notice.event_start_date = winner_key[0]
+                notice.event_end_date = winner_key[1]
+                notice.event_is_range = winner_key[0] != winner_key[1]
+                notice.date_confidence = best.date_confidence
+                notice.date_evidence = best.date_evidence
+                notice.date_source = f"ENRICHED_{best.date_source}"
+                notice.date_conflict = False
+                notice.review_reason = "DATE_ENRICHED_REVIEW"
             notice.cities = sorted(
                 set(notice.cities)
-                | {value for row in found for value in row.cities}
+                | {value for row in winner_rows for value in row.cities}
             )
             notice.venues = sorted(
                 set(notice.venues)
-                | {value for row in found for value in row.venues}
+                | {value for row in winner_rows for value in row.venues}
             )
-            for row in found:
+            for row in winner_rows:
                 if row.url and row.url not in notice.related_urls and row.url != notice.url:
                     notice.related_urls.append(row.url)
-            notice.supporting_article_count += len(found)
+            notice.supporting_article_count += len(winner_rows)
             notice.validation_status = "REVIEW_REQUIRED"
-            notice.review_reason = "DATE_ENRICHED_REVIEW"
 
         logs.append(
             {
@@ -417,7 +484,9 @@ def enrich_undated_events(
                 "error": error,
                 "note": (
                     f"date_found={len(notice.event_dates)}"
-                    if found
+                    if found and notice.event_dates
+                    else "date_conflict"
+                    if notice.date_conflict
                     else "date_not_found"
                 ),
                 "mode": "date_enrichment",

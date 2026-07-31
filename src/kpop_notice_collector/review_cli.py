@@ -84,8 +84,10 @@ def extract_payload(text: str) -> dict:
     if payload.get("schema") != "kpop-calendar-review-v1":
         raise ValueError("지원하지 않는 검토 요청 형식입니다.")
     decisions = payload.get("decisions")
-    if not isinstance(decisions, list) or not 1 <= len(decisions) <= 50:
-        raise ValueError("검토 결정은 1~50건이어야 합니다.")
+    if not isinstance(decisions, list) or not 1 <= len(decisions) <= 30:
+        raise ValueError("검토 결정은 1~30건이어야 합니다.")
+    if not all(isinstance(item, dict) for item in decisions):
+        raise ValueError("각 검토 결정은 JSON 객체여야 합니다.")
     return payload
 
 
@@ -173,6 +175,10 @@ def _history_row(source: dict, decision: dict, now: datetime) -> dict:
         "event_name": source.get("event_name", ""),
         "event_start_date": source.get("event_start_date", ""),
         "event_end_date": source.get("event_end_date", ""),
+        "date_confidence": "MANUAL",
+        "date_evidence": source.get("date_evidence", ""),
+        "date_source": "OWNER_REVIEW",
+        "date_conflict": "N",
         "cities": source.get("cities", ""),
         "venues": source.get("venues", ""),
         "first_seen": source.get("first_seen") or now.isoformat(),

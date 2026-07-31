@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .models import Notice
+from .safety import restore_spreadsheet_row, safe_row_for_spreadsheet
 
 
 REVIEW_FIELDS = [
@@ -19,6 +20,10 @@ REVIEW_FIELDS = [
     "event_start_date",
     "event_end_date",
     "event_dates",
+    "date_confidence",
+    "date_evidence",
+    "date_source",
+    "date_conflict",
     "cities",
     "venues",
     "article_title",
@@ -52,7 +57,10 @@ def _read_rows(path: str | Path) -> list[dict]:
     if not path.exists() or path.stat().st_size == 0:
         return []
     with path.open(encoding="utf-8-sig", newline="") as handle:
-        return list(csv.DictReader(handle))
+        return [
+            restore_spreadsheet_row(row)
+            for row in csv.DictReader(handle)
+        ]
 
 
 def _write_rows(path: str | Path, rows: list[dict], fields: list[str]) -> Path:
@@ -61,7 +69,7 @@ def _write_rows(path: str | Path, rows: list[dict], fields: list[str]) -> Path:
     with path.open("w", encoding="utf-8-sig", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=fields, extrasaction="ignore")
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(safe_row_for_spreadsheet(row) for row in rows)
     return path
 
 
@@ -78,6 +86,10 @@ def notice_to_review_row(notice: Notice, now: datetime) -> dict:
         "event_start_date": notice.event_start_date,
         "event_end_date": notice.event_end_date,
         "event_dates": "|".join(notice.event_dates),
+        "date_confidence": notice.date_confidence,
+        "date_evidence": notice.date_evidence,
+        "date_source": notice.date_source,
+        "date_conflict": "Y" if notice.date_conflict else "N",
         "cities": "|".join(notice.cities),
         "venues": "|".join(notice.venues),
         "article_title": notice.title,
@@ -109,9 +121,20 @@ def upsert_review_queue(
     review_log_path: str | Path | None = None,
 ) -> list[dict]:
     existing_rows = _read_rows(path)
+    if existing_rows and "date_confidence" not in existing_rows[0]:
+        # v3.0에서 서로 다른 일정 날짜가 합쳐진 검토 큐는 승계하지 않는다.
+        existing_rows = []
+    review_log_rows = (
+        _read_rows(review_log_path) if review_log_path else []
+    )
     rejected_event_keys = {
         row.get("event_key", "")
-        for row in (_read_rows(review_log_path) if review_log_path else [])
+        for row in review_log_rows
+        if row.get("action") == "REJECT"
+    }
+    rejected_candidate_ids = {
+        row.get("candidate_id", "")
+        for row in review_log_rows
         if row.get("action") == "REJECT"
     }
     by_candidate = {
@@ -126,7 +149,10 @@ def upsert_review_queue(
     }
 
     for notice in notices:
-        if notice.event_key in rejected_event_keys:
+        if (
+            notice.event_key in rejected_event_keys
+            or notice.candidate_id in rejected_candidate_ids
+        ):
             continue
         new_row = notice_to_review_row(notice, now)
         current = (
@@ -171,5 +197,4 @@ def append_review_log(path: str | Path, rows: list[dict]) -> None:
         )
         if not exists:
             writer.writeheader()
-        writer.writerows(rows)
-
+        writer.writerows(safe_row_for_spreadsheet(row) for row in rows)

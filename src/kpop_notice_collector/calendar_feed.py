@@ -5,6 +5,8 @@ from calendar import monthrange
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+from .safety import safe_http_url
+
 
 ACTIVITY_LABELS = {
     "COMEBACK": "컴백",
@@ -90,7 +92,9 @@ def build_calendar_feed(
                         "end": (parsed_end + timedelta(days=1)).isoformat(),
                         "allDay": True,
                         "color": ACTIVITY_COLORS.get(activity_type, "#64748b"),
-                        "url": str(row.get("primary_url", "")),
+                        "url": safe_http_url(
+                            str(row.get("primary_url", ""))
+                        ),
                         "extendedProps": _extended_props(
                             row, activity_type, label, artist, event_name
                         ),
@@ -116,7 +120,9 @@ def build_calendar_feed(
                     "start": raw_date,
                     "allDay": True,
                     "color": ACTIVITY_COLORS.get(activity_type, "#64748b"),
-                    "url": str(row.get("primary_url", "")),
+                    "url": safe_http_url(
+                        str(row.get("primary_url", ""))
+                    ),
                     "extendedProps": _extended_props(
                         row, activity_type, label, artist, event_name
                     ),
@@ -168,7 +174,9 @@ def _extended_props(
         "approvalStatus": str(row.get("approval_status", "")),
         "score": str(row.get("score", "")),
         "articleTitle": str(row.get("article_title", "")),
-        "primaryUrl": str(row.get("primary_url", "")),
+        "primaryUrl": safe_http_url(
+            str(row.get("primary_url", ""))
+        ),
         "supportingArticleCount": str(
             row.get("supporting_article_count", "")
         ),
@@ -204,14 +212,22 @@ def build_review_feed(
                 "eventStartDate": str(row.get("event_start_date", "")),
                 "eventEndDate": str(row.get("event_end_date", "")),
                 "eventDates": str(row.get("event_dates", "")),
+                "dateConfidence": str(row.get("date_confidence", "")),
+                "dateEvidence": str(row.get("date_evidence", "")),
+                "dateSource": str(row.get("date_source", "")),
+                "dateConflict": str(row.get("date_conflict", "")),
                 "cities": str(row.get("cities", "")),
                 "venues": str(row.get("venues", "")),
                 "articleTitle": str(row.get("article_title", "")),
                 "publishedAt": str(row.get("published_at", "")),
                 "score": str(row.get("score", "")),
                 "reviewReason": str(row.get("review_reason", "")),
-                "primaryUrl": str(row.get("primary_url", "")),
-                "naverUrl": str(row.get("naver_url", "")),
+                "primaryUrl": safe_http_url(
+                    str(row.get("primary_url", ""))
+                ),
+                "naverUrl": safe_http_url(
+                    str(row.get("naver_url", ""))
+                ),
                 "supportingArticleCount": str(
                     row.get("supporting_article_count", "")
                 ),

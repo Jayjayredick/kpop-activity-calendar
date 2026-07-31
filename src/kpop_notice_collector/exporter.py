@@ -9,12 +9,14 @@ from openpyxl.utils import get_column_letter
 
 from .models import Notice
 from .pipeline import notice_to_row
+from .safety import safe_row_for_spreadsheet
 
 
 DAILY_COLUMNS = [
     "candidate_id","event_key","수집 채널","회사","레이블","아티스트","artist_id","활동 유형",
     "일정 판정","점수","매체 점수","게시일","제목","행사명","이벤트 날짜",
-    "시작일","종료일","도시","공연장","클리핑 문구","매칭 키워드","출처 URL","기사 원문 URL",
+    "시작일","종료일","날짜 신뢰도","날짜 근거","날짜 출처","날짜 충돌",
+    "도시","공연장","클리핑 문구","매칭 키워드","출처 URL","기사 원문 URL",
     "네이버 뉴스 URL","매체","공식 소스","공식 확인","검색어","검증 상태",
     "검토 사유","제목 매칭 별칭","관련 기사 수","관련 기사 URL","기존 event_key",
     "source_id","notice_id","dedupe_key","수집시각",
@@ -23,7 +25,9 @@ DAILY_COLUMNS = [
 
 def _frame(rows: list[dict], columns: list[str] | None = None) -> pd.DataFrame:
     if rows:
-        return pd.DataFrame(rows)
+        return pd.DataFrame(
+            [safe_row_for_spreadsheet(row) for row in rows]
+        )
     return pd.DataFrame(columns=columns or [])
 
 

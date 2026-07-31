@@ -21,7 +21,7 @@ from .schedule_compare import load_event_history
 
 def parser() -> argparse.ArgumentParser:
     root = project_root()
-    result = argparse.ArgumentParser(description="향후 일정 최초 백필 v3.0")
+    result = argparse.ArgumentParser(description="향후 일정 최초 백필 v3.1")
     result.add_argument("--days-back", type=int, default=180)
     result.add_argument("--company", choices=["HYBE", "SM", "JYP", "YG"])
     result.add_argument("--min-score", type=int, default=None)
@@ -59,21 +59,20 @@ def parser() -> argparse.ArgumentParser:
 
 
 def _within_calendar_window(
-    event_dates: list[str],
+    event_start_date: str,
+    event_end_date: str,
     *,
     start: date,
     end: date,
 ) -> bool:
-    if not event_dates:
-        return True
-    for raw in event_dates:
-        try:
-            value = date.fromisoformat(raw)
-        except ValueError:
-            continue
-        if start <= value <= end:
-            return True
-    return False
+    if not event_start_date:
+        return False
+    try:
+        parsed_start = date.fromisoformat(event_start_date)
+        parsed_end = date.fromisoformat(event_end_date or event_start_date)
+    except ValueError:
+        return False
+    return parsed_start <= end and parsed_end >= start
 
 
 def main() -> None:
@@ -120,22 +119,51 @@ def main() -> None:
         now.date(),
         int(site_config.get("calendar_months_forward", 3)),
     )
-    queue_candidates = [
+    dated_candidates = [
         notice
         for notice in selected
         if _within_calendar_window(
-            notice.event_dates,
+            notice.event_start_date,
+            notice.event_end_date,
             start=start,
             end=end,
         )
     ]
+    undated_min_score = int(config.get("backfill_undated_min_score", 70))
+    undated_limit = int(
+        config.get("backfill_max_undated_per_artist_activity", 2)
+    )
+    undated_groups: dict[tuple[str, str], list] = {}
+    for notice in selected:
+        if notice.event_start_date or notice.score < undated_min_score:
+            continue
+        undated_groups.setdefault(
+            (notice.artist_id, notice.activity_type), []
+        ).append(notice)
+    undated_candidates = []
+    for notices in undated_groups.values():
+        undated_candidates.extend(
+            sorted(
+                notices,
+                key=lambda item: (
+                    item.date_conflict,
+                    item.score,
+                    item.published_at or item.fetched_at,
+                ),
+                reverse=True,
+            )[:undated_limit]
+        )
+    queue_candidates = dated_candidates + undated_candidates
     for notice in queue_candidates:
         notice.validation_status = "REVIEW_REQUIRED"
-        notice.review_reason = (
-            "BACKFILL_DATE_FOUND"
-            if notice.event_dates
-            else "BACKFILL_DATE_NOT_FOUND"
-        )
+        if notice.date_conflict:
+            notice.review_reason = "BACKFILL_DATE_CONFLICT"
+        elif not notice.event_start_date:
+            notice.review_reason = "BACKFILL_DATE_NOT_FOUND"
+        elif notice.date_confidence == "HIGH":
+            notice.review_reason = "BACKFILL_DATE_HIGH_REVIEW"
+        else:
+            notice.review_reason = "BACKFILL_DATE_LOW_REVIEW"
 
     calendar_rows = history
     if args.publish_review_queue:
@@ -169,7 +197,7 @@ def main() -> None:
         excluded,
         run_log,
         {
-            "version": "3.0.0",
+            "version": "3.1.0",
             "mode": "BACKFILL",
             "timezone": "Asia/Seoul",
             "days_back": args.days_back,

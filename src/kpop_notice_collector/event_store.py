@@ -7,6 +7,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from .models import Notice
+from .safety import restore_spreadsheet_row, safe_row_for_spreadsheet
 
 
 EVENT_FIELDS = [
@@ -20,6 +21,10 @@ EVENT_FIELDS = [
     "event_start_date",
     "event_end_date",
     "event_dates",
+    "date_confidence",
+    "date_evidence",
+    "date_source",
+    "date_conflict",
     "cities",
     "venues",
     "first_seen",
@@ -43,7 +48,11 @@ def load_event_rows(path: str | Path) -> list[dict]:
     if not path.exists() or path.stat().st_size == 0:
         return []
     with path.open(encoding="utf-8-sig", newline="") as handle:
-        return list(csv.DictReader(handle))
+        reader = csv.DictReader(handle)
+        # v3.0 날짜 병합 결과는 v3.1 신뢰도 필드가 없어 안전하게 폐기한다.
+        if "date_confidence" not in (reader.fieldnames or []):
+            return []
+        return [restore_spreadsheet_row(row) for row in reader]
 
 
 def write_event_rows(path: str | Path, rows: list[dict]) -> Path:
@@ -66,7 +75,7 @@ def write_event_rows(path: str | Path, rows: list[dict]) -> Path:
             extrasaction="ignore",
         )
         writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(safe_row_for_spreadsheet(row) for row in rows)
     return path
 
 
@@ -165,6 +174,10 @@ def upsert_event_history(
             "event_start_date": notice.event_start_date,
             "event_end_date": notice.event_end_date,
             "event_dates": "|".join(notice.event_dates),
+            "date_confidence": notice.date_confidence,
+            "date_evidence": notice.date_evidence,
+            "date_source": notice.date_source,
+            "date_conflict": "Y" if notice.date_conflict else "N",
             "cities": "|".join(notice.cities),
             "venues": "|".join(notice.venues),
             "first_seen": current.get("first_seen") or now.isoformat(),
@@ -204,8 +217,14 @@ def append_daily_rows(path: str | Path, notices: list[Notice]) -> None:
         return
     path.parent.mkdir(parents=True, exist_ok=True)
     exists = path.exists() and path.stat().st_size > 0
-    with path.open("a", encoding="utf-8-sig", newline="") as f:
+    if exists:
+        with path.open(encoding="utf-8-sig", newline="") as handle:
+            old_fields = csv.DictReader(handle).fieldnames or []
+        if old_fields != list(rows[0]):
+            # 스키마가 달라진 v3.0 일일 이력은 새 헤더로 초기화한다.
+            exists = False
+    with path.open("a" if exists else "w", encoding="utf-8-sig", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0]))
         if not exists:
             writer.writeheader()
-        writer.writerows(rows)
+        writer.writerows(safe_row_for_spreadsheet(row) for row in rows)

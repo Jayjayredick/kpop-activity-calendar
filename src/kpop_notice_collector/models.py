@@ -3,6 +3,60 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
+from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
+
+
+TRACKING_QUERY_KEYS = {
+    "fbclid",
+    "gclid",
+    "dclid",
+    "msclkid",
+    "mc_cid",
+    "mc_eid",
+    "igshid",
+    "referrer",
+}
+
+
+def canonicalize_url(value: str) -> str:
+    """추적 파라미터만 제거하고 기사 식별 파라미터는 보존한다."""
+    value = (value or "").strip()
+    if not value:
+        return ""
+    try:
+        parsed = urlsplit(value)
+    except ValueError:
+        return value.split("#", 1)[0]
+    if not parsed.scheme or not parsed.netloc:
+        return value.split("#", 1)[0]
+
+    hostname = (parsed.hostname or "").lower()
+    try:
+        port = parsed.port
+    except ValueError:
+        return value.split("#", 1)[0]
+    default_port = (
+        (parsed.scheme.lower() == "http" and port == 80)
+        or (parsed.scheme.lower() == "https" and port == 443)
+    )
+    netloc = hostname if not port or default_port else f"{hostname}:{port}"
+    if parsed.username:
+        credentials = parsed.username
+        if parsed.password:
+            credentials += f":{parsed.password}"
+        netloc = f"{credentials}@{netloc}"
+
+    query = [
+        (key, item)
+        for key, item in parse_qsl(parsed.query, keep_blank_values=True)
+        if not key.casefold().startswith("utm_")
+        and key.casefold() not in TRACKING_QUERY_KEYS
+    ]
+    query.sort(key=lambda pair: (pair[0].casefold(), pair[1]))
+    path = parsed.path.rstrip("/") or "/"
+    return urlunsplit(
+        (parsed.scheme.lower(), netloc, path, urlencode(query, doseq=True), "")
+    )
 
 
 @dataclass(frozen=True)
@@ -62,6 +116,10 @@ class Notice:
     event_start_date: str = ""
     event_end_date: str = ""
     event_is_range: bool = False
+    date_confidence: str = "NONE"
+    date_evidence: str = ""
+    date_source: str = ""
+    date_conflict: bool = False
     cities: list[str] = field(default_factory=list)
     venues: list[str] = field(default_factory=list)
     schedule_status: str = "UNASSESSED"
@@ -79,7 +137,7 @@ class Notice:
         import re
 
         canonical_url = self.original_url or self.url
-        canonical = canonical_url.split("#", 1)[0].split("?", 1)[0].rstrip("/")
+        canonical = canonicalize_url(canonical_url)
         normalized_title = re.sub(r"\s+", " ", self.title).strip().lower()
         # 같은 종합 기사에 여러 아티스트가 등장할 수 있으므로 URL만으로 합치지 않는다.
         value = f"{self.artist_id}|{canonical or normalized_title}"
@@ -109,7 +167,9 @@ class Notice:
         import hashlib
         import re
 
-        canonical_url = (self.original_url or self.url).split("#", 1)[0].split("?", 1)[0]
-        anchor = re.sub(r"\W+", "", self.event_name or self.title).lower()
-        value = f"{self.artist_id}|{anchor}|{canonical_url}"
+        canonical_url = canonicalize_url(self.original_url or self.url)
+        fallback = re.sub(r"\W+", "", self.title).lower()
+        # 기사 URL이 있으면 파서가 행사명을 더 잘 추출하도록 개선된 뒤에도
+        # 같은 검토 후보 ID를 유지한다.
+        value = f"{self.artist_id}|{canonical_url or fallback}"
         return hashlib.sha256(value.encode("utf-8")).hexdigest()[:24]

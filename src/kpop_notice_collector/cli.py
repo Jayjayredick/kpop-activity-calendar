@@ -27,7 +27,7 @@ from .schedule_compare import load_event_history
 
 def parser() -> argparse.ArgumentParser:
     root = project_root()
-    p = argparse.ArgumentParser(description="4사 K-pop NAVER 뉴스 활동 추적기 v3.0")
+    p = argparse.ArgumentParser(description="4사 K-pop NAVER 뉴스 활동 추적기 v3.1")
     p.add_argument("--hours", type=int, default=24)
     p.add_argument("--company", choices=["HYBE", "SM", "JYP", "YG"])
     p.add_argument("--min-score", type=int, default=None)
@@ -129,7 +129,7 @@ def main() -> None:
         excluded_news,
         news_log,
         {
-            "version": "3.0.0",
+            "version": "3.1.0",
             "timezone": "Asia/Seoul",
             "hours": args.hours,
             "company": args.company or "ALL",

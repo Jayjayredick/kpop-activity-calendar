@@ -152,6 +152,7 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(len(rows), 1)
         self.assertEqual(rows[0].publisher, "yna.co.kr")
         self.assertEqual(rows[0].activity_type, "COMEBACK")
+        self.assertEqual(rows[0].validation_status, "REVIEW_REQUIRED")
         self.assertEqual(adapter.session.last_headers["X-NCP-APIGW-API-KEY-ID"], "id")
         self.assertEqual(len(excluded), 1)
         self.assertEqual(log[0]["error"], "")
@@ -275,7 +276,7 @@ class CoreTests(unittest.TestCase):
         parse_event_fields(notice)
         self.assertEqual(
             notice.event_dates,
-            ["2026-08-10", "2026-08-11", "2026-08-12"],
+            ["2026-08-10", "2026-08-11"],
         )
 
     def test_cross_month_fancon_is_concert_range(self):
@@ -300,6 +301,103 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(notice.event_end_date, "2026-08-02")
         self.assertTrue(notice.event_is_range)
         self.assertIn("고려대학교 화정체육관", notice.venues)
+
+    def test_title_date_wins_over_unrelated_body_dates(self):
+        published = datetime(2026, 7, 30, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+        notice = Notice(
+            source_id="test",
+            company="SM",
+            label="SM",
+            artist_id="riize",
+            artist="RIIZE",
+            title="라이즈, 데뷔 3주년 팬미팅 9월 12~13일 개최",
+            url="https://example.com/riize",
+            published_at=published,
+            body="관련 기사는 과거 7월 6일부터 12일까지의 다른 일정을 함께 소개했다.",
+            fetched_at=published,
+            activity_type="FANMEETING",
+        )
+        parse_event_fields(notice)
+        self.assertEqual(notice.event_start_date, "2026-09-12")
+        self.assertEqual(notice.event_end_date, "2026-09-13")
+        self.assertEqual(notice.date_source, "TITLE")
+        self.assertEqual(notice.date_confidence, "HIGH")
+
+    def test_past_month_is_not_rolled_into_next_year(self):
+        published = datetime(2026, 7, 30, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+        notice = Notice(
+            source_id="test",
+            company="HYBE",
+            label="Source Music",
+            artist_id="lesserafim",
+            artist="LE SSERAFIM",
+            title="르세라핌, 5월 22일 월드투어 개최",
+            url="https://example.com/lesserafim",
+            published_at=published,
+            body="",
+            fetched_at=published,
+            activity_type="TOUR_ANNOUNCEMENT",
+        )
+        parse_event_fields(notice)
+        self.assertEqual(notice.event_start_date, "2026-05-22")
+
+    def test_title_bare_day_uses_publication_month_with_medium_confidence(self):
+        published = datetime(2026, 7, 18, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+        notice = Notice(
+            source_id="test",
+            company="SM",
+            label="SM",
+            artist_id="aespa",
+            artist="aespa",
+            title="에스파, 24일 일본 첫 미니앨범 발매",
+            url="https://example.com/aespa",
+            published_at=published,
+            body="",
+            fetched_at=published,
+            activity_type="COMEBACK",
+        )
+        parse_event_fields(notice)
+        self.assertEqual(notice.event_start_date, "2026-07-24")
+        self.assertEqual(notice.date_confidence, "MEDIUM")
+
+    def test_conflicting_title_dates_are_left_for_manual_review(self):
+        published = datetime(2026, 7, 30, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+        notice = Notice(
+            source_id="test",
+            company="JYP",
+            label="JYP",
+            artist_id="nmixx",
+            artist="NMIXX",
+            title="엔믹스, 8월 10일 콘서트·9월 12일 콘서트 개최",
+            url="https://example.com/nmixx",
+            published_at=published,
+            body="",
+            fetched_at=published,
+            activity_type="CONCERT",
+        )
+        parse_event_fields(notice)
+        self.assertTrue(notice.date_conflict)
+        self.assertEqual(notice.date_confidence, "CONFLICT")
+        self.assertEqual(notice.event_start_date, "")
+
+    def test_song_title_is_not_used_as_fancon_name(self):
+        published = datetime(2026, 7, 30, 8, 0, tzinfo=ZoneInfo("Asia/Seoul"))
+        notice = Notice(
+            source_id="test",
+            company="SM",
+            label="SM",
+            artist_id="red_velvet",
+            artist="Red Velvet",
+            title="레드벨벳, 팬콘서트서 미발표곡 '서핀 보이' 공개",
+            url="https://example.com/red-velvet-song",
+            published_at=published,
+            body="",
+            fetched_at=published,
+            activity_type="CONCERT",
+            matched_artist_alias="레드벨벳",
+        )
+        parse_event_fields(notice)
+        self.assertEqual(notice.event_name, "Red Velvet 팬콘서트")
 
     def test_album_name_drives_duplicate_cluster(self):
         now = datetime.now(ZoneInfo("Asia/Seoul"))
@@ -440,6 +538,53 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(len(clustered), 1)
         self.assertEqual(clustered[0].supporting_article_count, 2)
         self.assertEqual(clustered[0].related_urls, ["https://example.com/b"])
+
+    def test_different_dates_do_not_merge_even_with_same_event_name(self):
+        now = datetime.now(ZoneInfo("Asia/Seoul"))
+        common = {
+            "source_id": "naver_news",
+            "source_type": "NAVER_NEWS",
+            "company": "SM",
+            "label": "SM",
+            "artist_id": "riize",
+            "artist": "RIIZE",
+            "published_at": now,
+            "body": "",
+            "fetched_at": now,
+            "activity_type": "FANMEETING",
+            "score": 75,
+            "event_name": "RIIZE Anniversary Fanmeeting",
+            "date_confidence": "HIGH",
+            "date_source": "TITLE",
+        }
+        first = Notice(
+            title="RIIZE 팬미팅 8월 1일 개최",
+            url="https://example.com/riize-a",
+            event_start_date="2026-08-01",
+            event_end_date="2026-08-01",
+            event_dates=["2026-08-01"],
+            **common,
+        )
+        second = Notice(
+            title="RIIZE 팬미팅 9월 12일 개최",
+            url="https://example.com/riize-b",
+            event_start_date="2026-09-12",
+            event_end_date="2026-09-12",
+            event_dates=["2026-09-12"],
+            **common,
+        )
+        self.assertEqual(len(cluster_events([first, second])), 2)
+
+    def test_review_page_has_safe_bulk_actions(self):
+        html = (
+            Path(__file__).resolve().parents[1] / "docs" / "index.html"
+        ).read_text(encoding="utf-8")
+        self.assertIn('id="bulk-approve"', html)
+        self.assertIn('id="bulk-reject"', html)
+        self.assertIn("maxBulkItems = 30", html)
+        self.assertIn("reviewPageSize = 30", html)
+        self.assertIn('id="clear-decisions"', html)
+        self.assertIn("날짜가 없는", html)
 
     def test_manual_truth_uses_semantic_fields(self):
         with TemporaryDirectory() as temp_dir:

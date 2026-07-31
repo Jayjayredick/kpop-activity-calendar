@@ -141,6 +141,42 @@
     .btn:disabled { cursor: not-allowed; opacity: .45; }
     .review-list { display: grid; gap: 12px; }
     .review-card { padding: 18px; }
+    .review-card.selected { border-color: #84adff; box-shadow: 0 0 0 2px #dbe8ff; }
+    .pager {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .pager-status { min-width: 150px; text-align: center; color: var(--muted); font-size: 12px; font-weight: 800; }
+    .bulk-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      align-items: center;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .bulk-bar select, .bulk-bar input {
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      padding: 8px 9px;
+      background: #fff;
+      color: var(--ink);
+    }
+    .bulk-count { color: var(--muted); font-size: 12px; font-weight: 800; }
+    .card-select {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      margin-left: auto;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .card-select input { width: 16px; height: 16px; }
     .review-meta { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
     .badge {
       border-radius: 999px;
@@ -265,10 +301,37 @@
         </div>
         <div class="actions">
           <button type="button" class="btn" id="download-decisions">결정 JSON 다운로드</button>
+          <button type="button" class="btn danger" id="clear-decisions">작성 결정 전체 취소</button>
           <button type="button" class="btn primary" id="submit-decisions">GitHub에 반영 요청</button>
         </div>
       </section>
+      <section class="bulk-bar panel" aria-label="검토 대기 일괄 작업">
+        <select id="review-company" aria-label="검토 회사 필터">
+          <option value="">전체 회사</option>
+        </select>
+        <select id="review-activity" aria-label="검토 활동 필터">
+          <option value="">전체 활동</option>
+        </select>
+        <select id="review-date-status" aria-label="날짜 상태 필터">
+          <option value="">전체 날짜 상태</option>
+          <option value="HIGH">날짜 신뢰도 높음</option>
+          <option value="MEDIUM">날짜 검토 필요</option>
+          <option value="MISSING">날짜 없음</option>
+          <option value="CONFLICT">날짜 충돌</option>
+        </select>
+        <input class="search" id="review-search" type="search" placeholder="아티스트·행사명·기사 검색">
+        <button type="button" class="btn" id="select-visible">현재 페이지 선택</button>
+        <button type="button" class="btn" id="clear-selection">선택 해제</button>
+        <button type="button" class="btn success" id="bulk-approve">선택 일괄 승인</button>
+        <button type="button" class="btn danger" id="bulk-reject">선택 일괄 Reject</button>
+        <span class="bulk-count" id="bulk-count">표시 0건 · 선택 0건</span>
+      </section>
       <div class="review-list" id="review-list"></div>
+      <nav class="pager panel" id="review-pager" aria-label="검토 대기 페이지">
+        <button type="button" class="btn" id="review-prev">이전</button>
+        <span class="pager-status" id="review-page-status">1 / 1 페이지</span>
+        <button type="button" class="btn" id="review-next">다음</button>
+      </nav>
       <div class="empty panel" id="review-empty">현재 검토 대기 항목이 없습니다.</div>
 
       <details class="manual panel">
@@ -343,16 +406,30 @@
     const activities = Object.keys(activityLabels);
     const selectedCompanies = new Set(companies);
     const selectedActivities = new Set(activities);
-    const storageKey = "kpop-calendar-review-decisions-v1";
+    const storageKey = "kpop-calendar-review-decisions-v2";
     let calendar;
     let allEvents = [];
     let reviewItems = [];
     let repository = "";
     let currentEvent = null;
-    const decisions = new Map(
-      (JSON.parse(localStorage.getItem(storageKey) || "[]"))
-        .map(item => [item.candidateId || item.eventKey || crypto.randomUUID(), item])
-    );
+    let reviewPage = 1;
+    const selectedReviewIds = new Set();
+    const reviewPageSize = 30;
+    const maxBulkItems = 30;
+
+    function loadDecisions() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey) || "[]");
+        if (!Array.isArray(saved)) return new Map();
+        return new Map(saved
+          .filter(item => item && typeof item === "object" && item.action)
+          .map(item => [item.candidateId || item.eventKey || crypto.randomUUID(), item]));
+      } catch (_error) {
+        localStorage.removeItem(storageKey);
+        return new Map();
+      }
+    }
+    const decisions = loadDecisions();
 
     function escapeHtml(value) {
       return String(value ?? "").replace(/[&<>"']/g, char => ({
@@ -360,8 +437,32 @@
       }[char]));
     }
 
+    function safeUrl(value) {
+      try {
+        const parsed = new URL(String(value || ""));
+        return ["http:", "https:"].includes(parsed.protocol) ? parsed.href : "";
+      } catch (_error) {
+        return "";
+      }
+    }
+
+    function kstDateString(value = new Date()) {
+      const parts = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Seoul",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit"
+      }).formatToParts(value);
+      const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
+      return `${values.year}-${values.month}-${values.day}`;
+    }
+
     function persistDecisions() {
-      localStorage.setItem(storageKey, JSON.stringify([...decisions.values()]));
+      try {
+        localStorage.setItem(storageKey, JSON.stringify([...decisions.values()]));
+      } catch (_error) {
+        alert("브라우저 임시 저장 공간이 부족합니다. 결정 JSON을 다운로드해 보관해주세요.");
+      }
       document.getElementById("stat-decisions").textContent = decisions.size;
       document.querySelectorAll("[data-decision-state]").forEach(el => {
         const key = el.dataset.decisionState;
@@ -420,15 +521,69 @@
       if (id === "calendar-view" && calendar) setTimeout(() => calendar.updateSize(), 0);
     }
 
+    function reviewDateStatus(item) {
+      if (String(item.dateConflict).toUpperCase() === "Y" || item.dateConfidence === "CONFLICT") {
+        return "CONFLICT";
+      }
+      if (!item.eventStartDate) return "MISSING";
+      return item.dateConfidence || "MEDIUM";
+    }
+
+    function filteredReviewItems() {
+      const company = document.getElementById("review-company").value;
+      const activity = document.getElementById("review-activity").value;
+      const dateStatus = document.getElementById("review-date-status").value;
+      const query = document.getElementById("review-search").value.trim().toLowerCase();
+      return reviewItems.filter(item => {
+        const searchable = `${item.artist} ${item.eventName} ${item.articleTitle}`.toLowerCase();
+        return (!company || item.company === company) &&
+          (!activity || item.activityType === activity) &&
+          (!dateStatus || reviewDateStatus(item) === dateStatus) &&
+          (!query || searchable.includes(query));
+      });
+    }
+
+    function pagedReviewItems() {
+      const filtered = filteredReviewItems();
+      const pageCount = Math.max(1, Math.ceil(filtered.length / reviewPageSize));
+      reviewPage = Math.min(Math.max(1, reviewPage), pageCount);
+      const start = (reviewPage - 1) * reviewPageSize;
+      return {
+        filtered,
+        pageCount,
+        start,
+        items: filtered.slice(start, start + reviewPageSize)
+      };
+    }
+
+    function updateBulkCount() {
+      const page = pagedReviewItems();
+      document.getElementById("bulk-count").textContent =
+        `전체 ${page.filtered.length}건 · 현재 페이지 ${page.items.length}건 · 선택 ${selectedReviewIds.size}건 · 1회 최대 ${maxBulkItems}건`;
+      document.getElementById("review-page-status").textContent =
+        `${reviewPage} / ${page.pageCount} 페이지`;
+      document.getElementById("review-prev").disabled = reviewPage <= 1;
+      document.getElementById("review-next").disabled = reviewPage >= page.pageCount;
+      document.getElementById("review-pager").style.display =
+        page.filtered.length ? "flex" : "none";
+    }
+
     function reviewCard(item) {
       const key = item.candidateId;
+      const dateStatus = reviewDateStatus(item);
+      const articleUrl = safeUrl(item.primaryUrl);
+      const articleLink = articleUrl
+        ? `<a class="btn" href="${escapeHtml(articleUrl)}" target="_blank" rel="noopener noreferrer">기사 열기</a>`
+        : `<button type="button" class="btn" disabled>기사 URL 없음</button>`;
       return `
         <article class="review-card panel" data-card="${escapeHtml(key)}">
           <div class="review-meta">
             <span class="badge">${escapeHtml(item.company)}</span>
             <span class="badge">${escapeHtml(item.activityLabel)}</span>
             <span class="badge warn">${escapeHtml(item.reviewReason || "검토 필요")}</span>
+            <span class="badge">날짜 ${escapeHtml(dateStatus)}</span>
             <span class="badge">관련 기사 ${escapeHtml(item.supportingArticleCount || "1")}건</span>
+            <label class="card-select"><input type="checkbox" data-select="${escapeHtml(key)}">선택</label>
           </div>
           <h3>${escapeHtml(item.artist)} · ${escapeHtml(item.eventName || item.activityLabel)}</h3>
           <p class="article-title">${escapeHtml(item.articleTitle)}</p>
@@ -439,38 +594,59 @@
             <div class="field span-2"><label>행사명</label><input name="eventName" value="${escapeHtml(item.eventName)}"></div>
             <div class="field"><label>시작일</label><input name="eventStartDate" type="date" value="${escapeHtml(item.eventStartDate)}"></div>
             <div class="field"><label>종료일</label><input name="eventEndDate" type="date" value="${escapeHtml(item.eventEndDate)}"></div>
+            <div class="field span-2"><label>날짜 추출 근거</label><input value="${escapeHtml(item.dateEvidence || "확인 필요")}" readonly></div>
             <div class="field span-2"><label>도시</label><input name="cities" value="${escapeHtml(item.cities)}"></div>
             <div class="field span-2"><label>공연장</label><input name="venues" value="${escapeHtml(item.venues)}"></div>
             <div class="field span-6"><label>기사 근거</label><textarea readonly>${escapeHtml(item.clippedText)}</textarea></div>
           </div>
           <div class="card-actions">
-            <a class="btn" href="${escapeHtml(item.primaryUrl)}" target="_blank" rel="noopener">기사 열기</a>
+            ${articleLink}
             <button type="button" class="btn success" data-action="APPROVE">수정 내용으로 확정</button>
             <button type="button" class="btn danger" data-action="REJECT">일정에서 제외</button>
+            <button type="button" class="btn" data-action="CLEAR">저장 결정 취소</button>
             <span class="decision" data-decision-state="${escapeHtml(key)}"></span>
           </div>
         </article>`;
     }
 
     function cardDecision(card, item, action) {
+      if (action === "CLEAR") {
+        decisions.delete(item.candidateId);
+        persistDecisions();
+        return;
+      }
       if (action === "REJECT") {
         decisions.set(item.candidateId, {
-          action, candidateId: item.candidateId, eventKey: item.eventKey,
-          artist: item.artist, activityType: item.activityType, eventName: item.eventName
+          action, candidateId: item.candidateId, eventKey: item.eventKey
         });
         persistDecisions();
         return;
       }
-      const get = name => card.querySelector(`[name="${name}"]`).value.trim();
-      const start = get("eventStartDate");
-      if (!start) {
+      const decision = buildApprovalDecision(item, card);
+      if (!decision) {
         alert("확정하려면 시작일을 입력해야 합니다.");
         return;
       }
-      decisions.set(item.candidateId, {
-        action: "APPROVE",
-        candidateId: item.candidateId,
-        eventKey: item.eventKey,
+      decisions.set(item.candidateId, decision);
+      persistDecisions();
+    }
+
+    function buildApprovalDecision(item, card = null) {
+      const get = name => card
+        ? card.querySelector(`[name="${name}"]`).value.trim()
+        : String({
+            company: item.company,
+            artist: item.artist,
+            activityType: item.activityType,
+            eventName: item.eventName,
+            eventStartDate: item.eventStartDate,
+            eventEndDate: item.eventEndDate,
+            cities: item.cities,
+            venues: item.venues
+          }[name] || "").trim();
+      const start = get("eventStartDate");
+      if (!start) return null;
+      const values = {
         company: get("company"),
         artistId: item.artistId,
         artist: get("artist"),
@@ -479,19 +655,90 @@
         eventStartDate: start,
         eventEndDate: get("eventEndDate") || start,
         cities: get("cities"),
-        venues: get("venues"),
-        primaryUrl: item.primaryUrl
+        venues: get("venues")
+      };
+      const originals = Object.fromEntries([
+        ["company", item.company],
+        ["artistId", item.artistId],
+        ["artist", item.artist],
+        ["activityType", item.activityType],
+        ["eventName", item.eventName],
+        ["eventStartDate", item.eventStartDate],
+        ["eventEndDate", item.eventEndDate || item.eventStartDate],
+        ["cities", item.cities],
+        ["venues", item.venues]
+      ]);
+      const decision = {
+        action: "APPROVE",
+        candidateId: item.candidateId,
+        eventKey: item.eventKey
+      };
+      Object.entries(values).forEach(([key, value]) => {
+        if (String(value || "") !== String(originals[key] || "")) {
+          decision[key] = value;
+        }
       });
+      return decision;
+    }
+
+    function bulkDecision(action) {
+      const ids = [...selectedReviewIds];
+      if (!ids.length) return alert("먼저 검토 항목을 선택하세요.");
+      if (ids.length > maxBulkItems) {
+        return alert(`한 번에 최대 ${maxBulkItems}건까지 처리할 수 있습니다. 필터로 범위를 줄여주세요.`);
+      }
+      if (action === "REJECT" && !confirm(`선택한 ${ids.length}건을 모두 Reject 결정에 넣을까요?`)) {
+        return;
+      }
+      let applied = 0;
+      let skipped = 0;
+      ids.forEach(id => {
+        const item = reviewItems.find(row => row.candidateId === id);
+        if (!item) return;
+        if (action === "REJECT") {
+          decisions.set(id, {
+            action: "REJECT",
+            candidateId: id,
+            eventKey: item.eventKey
+          });
+          applied += 1;
+          return;
+        }
+        const card = document.querySelector(`[data-card="${CSS.escape(id)}"]`);
+        const decision = buildApprovalDecision(item, card);
+        if (!decision) {
+          skipped += 1;
+          return;
+        }
+        decisions.set(id, decision);
+        applied += 1;
+      });
+      selectedReviewIds.clear();
+      renderReviewItems();
       persistDecisions();
+      const suffix = skipped ? ` 날짜가 없는 ${skipped}건은 건너뛰었습니다.` : "";
+      alert(`${applied}건을 ${action === "APPROVE" ? "승인" : "Reject"} 결정에 넣었습니다.${suffix}`);
     }
 
     function renderReviewItems() {
       const list = document.getElementById("review-list");
       const empty = document.getElementById("review-empty");
-      list.innerHTML = reviewItems.map(reviewCard).join("");
-      empty.style.display = reviewItems.length ? "none" : "block";
-      reviewItems.forEach(item => {
+      const page = pagedReviewItems();
+      const visibleItems = page.items;
+      list.innerHTML = visibleItems.map(reviewCard).join("");
+      empty.style.display = page.filtered.length ? "none" : "block";
+      visibleItems.forEach(item => {
         const card = list.querySelector(`[data-card="${CSS.escape(item.candidateId)}"]`);
+        const checkbox = card.querySelector("[data-select]");
+        checkbox.checked = selectedReviewIds.has(item.candidateId);
+        card.classList.toggle("selected", checkbox.checked);
+        checkbox.addEventListener("change", () => {
+          checkbox.checked
+            ? selectedReviewIds.add(item.candidateId)
+            : selectedReviewIds.delete(item.candidateId);
+          card.classList.toggle("selected", checkbox.checked);
+          updateBulkCount();
+        });
         addOptions(card.querySelector('[name="company"]'), companies);
         card.querySelector('[name="company"]').value = item.company;
         addOptions(card.querySelector('[name="activityType"]'), activities, activityLabels);
@@ -501,6 +748,7 @@
         );
       });
       persistDecisions();
+      updateBulkCount();
     }
 
     function issuePayload() {
@@ -511,20 +759,51 @@
       };
     }
 
+    function pruneStaleDecisions() {
+      const candidates = new Set(reviewItems.map(item => item.candidateId));
+      const eventKeys = new Set(allEvents.map(event =>
+        event.extendedProps?.eventKey || event.groupId || event.id
+      ));
+      [...decisions.entries()].forEach(([key, decision]) => {
+        if (["APPROVE", "REJECT"].includes(decision.action) &&
+            !candidates.has(decision.candidateId)) {
+          decisions.delete(key);
+        }
+        if (["UPDATE", "DELETE"].includes(decision.action) &&
+            !eventKeys.has(decision.eventKey)) {
+          decisions.delete(key);
+        }
+      });
+      persistDecisions();
+    }
+
+    function clearAllDecisions() {
+      if (!decisions.size) return;
+      if (!confirm(`작성한 결정 ${decisions.size}건을 모두 취소할까요?`)) return;
+      decisions.clear();
+      persistDecisions();
+      renderReviewItems();
+    }
+
     function downloadJson() {
       if (!decisions.size) return alert("먼저 확정·제외·수정 결정을 작성하세요.");
       const blob = new Blob([JSON.stringify(issuePayload(), null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const anchor = document.createElement("a");
       anchor.href = url;
-      anchor.download = `calendar_review_${new Date().toISOString().slice(0, 10)}.json`;
+      anchor.download = `calendar_review_${kstDateString()}.json`;
       anchor.click();
       URL.revokeObjectURL(url);
     }
 
     function submitToGitHub() {
       if (!decisions.size) return alert("먼저 확정·제외·수정 결정을 작성하세요.");
-      if (!repository) return alert("저장소 주소가 설정되지 않았습니다.");
+      if (decisions.size > maxBulkItems) {
+        return alert(`한 번의 GitHub 반영 요청은 최대 ${maxBulkItems}건입니다. 결정을 나눠 제출해주세요.`);
+      }
+      if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)) {
+        return alert("저장소 주소가 올바르게 설정되지 않았습니다.");
+      }
       const body = [
         "캘린더 웹 검토 결과입니다.",
         "",
@@ -534,8 +813,11 @@
         JSON.stringify(issuePayload(), null, 2),
         "```"
       ].join("\n");
-      const title = `[CALENDAR REVIEW] ${new Date().toISOString().slice(0, 10)} ${decisions.size}건`;
+      const title = `[CALENDAR REVIEW] ${kstDateString()} ${decisions.size}건`;
       const url = `https://github.com/${repository}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+      if (url.length > 7500) {
+        return alert("수정 내용이 길어 GitHub 요청 URL 한도를 넘었습니다. 결정 수를 줄여 나눠 제출하거나 JSON을 다운로드해주세요.");
+      }
       window.open(url, "_blank", "noopener");
     }
 
@@ -562,17 +844,13 @@
       const form = document.getElementById("event-edit-form");
       const eventKey = form.eventKey.value;
       if (action === "DELETE") {
-        decisions.set(eventKey, {
-          action, eventKey, artist: form.artist.value,
-          activityType: form.activityType.value, eventName: form.eventName.value
-        });
+        decisions.set(eventKey, { action, eventKey });
       } else {
         if (!form.eventStartDate.value) return alert("시작일이 필요합니다.");
-        decisions.set(eventKey, {
-          action: "UPDATE",
-          eventKey,
+        const props = currentEvent.extendedProps;
+        const values = {
           company: form.company.value,
-          artistId: currentEvent.extendedProps.artistId || "",
+          artistId: props.artistId || "",
           artist: form.artist.value.trim(),
           activityType: form.activityType.value,
           eventName: form.eventName.value.trim(),
@@ -580,9 +858,32 @@
           eventEndDate: form.eventEndDate.value || form.eventStartDate.value,
           cities: form.cities.value.trim(),
           venues: form.venues.value.trim(),
-          primaryUrl: form.primaryUrl.value.trim(),
+          primaryUrl: safeUrl(form.primaryUrl.value.trim()),
           note: form.note.value.trim()
+        };
+        const originals = {
+          company: props.company || "",
+          artistId: props.artistId || "",
+          artist: props.artist || "",
+          activityType: props.activityType || "",
+          eventName: props.eventName || "",
+          eventStartDate: props.eventStartDate || currentEvent.startStr.slice(0, 10),
+          eventEndDate: props.eventEndDate || props.eventStartDate || currentEvent.startStr.slice(0, 10),
+          cities: props.cities || "",
+          venues: props.venues || "",
+          primaryUrl: safeUrl(props.primaryUrl || currentEvent.url || ""),
+          note: ""
+        };
+        const decision = {
+          action: "UPDATE",
+          eventKey
+        };
+        Object.entries(values).forEach(([key, value]) => {
+          if (String(value || "") !== String(originals[key] || "")) {
+            decision[key] = value;
+          }
         });
+        decisions.set(eventKey, decision);
       }
       persistDecisions();
       document.getElementById("event-dialog").close();
@@ -600,7 +901,42 @@
       );
       document.getElementById("event-search").addEventListener("input", () => calendar.refetchEvents());
       document.getElementById("download-decisions").addEventListener("click", downloadJson);
+      document.getElementById("clear-decisions").addEventListener("click", clearAllDecisions);
       document.getElementById("submit-decisions").addEventListener("click", submitToGitHub);
+      addOptions(document.getElementById("review-company"), ["", ...companies],
+        {"": "전체 회사"});
+      addOptions(document.getElementById("review-activity"), ["", ...activities],
+        {"": "전체 활동", ...activityLabels});
+      ["review-company", "review-activity", "review-date-status"].forEach(id =>
+        document.getElementById(id).addEventListener("change", () => {
+          reviewPage = 1;
+          renderReviewItems();
+        })
+      );
+      document.getElementById("review-search").addEventListener("input", () => {
+        reviewPage = 1;
+        renderReviewItems();
+      });
+      document.getElementById("review-prev").addEventListener("click", () => {
+        reviewPage = Math.max(1, reviewPage - 1);
+        renderReviewItems();
+      });
+      document.getElementById("review-next").addEventListener("click", () => {
+        reviewPage += 1;
+        renderReviewItems();
+      });
+      document.getElementById("select-visible").addEventListener("click", () => {
+        pagedReviewItems().items.forEach(item =>
+          selectedReviewIds.add(item.candidateId)
+        );
+        renderReviewItems();
+      });
+      document.getElementById("clear-selection").addEventListener("click", () => {
+        selectedReviewIds.clear();
+        renderReviewItems();
+      });
+      document.getElementById("bulk-approve").addEventListener("click", () => bulkDecision("APPROVE"));
+      document.getElementById("bulk-reject").addEventListener("click", () => bulkDecision("REJECT"));
 
       document.querySelectorAll('#manual-form select[name="company"], #event-edit-form select[name="company"]')
         .forEach(select => addOptions(select, companies));
@@ -622,7 +958,7 @@
           eventEndDate: data.eventEndDate || data.eventStartDate,
           cities: data.cities.trim(),
           venues: data.venues.trim(),
-          primaryUrl: data.primaryUrl.trim(),
+          primaryUrl: safeUrl(data.primaryUrl.trim()),
           note: data.note.trim()
         });
         persistDecisions();
@@ -634,7 +970,7 @@
       document.getElementById("close-dialog").addEventListener("click", () => dialog.close());
       document.getElementById("delete-event").addEventListener("click", () => saveEventDecision("DELETE"));
       document.getElementById("open-source").addEventListener("click", () => {
-        const url = document.getElementById("event-edit-form").primaryUrl.value;
+        const url = safeUrl(document.getElementById("event-edit-form").primaryUrl.value);
         if (url) window.open(url, "_blank", "noopener");
       });
       document.getElementById("event-edit-form").addEventListener("submit", event => {
@@ -653,6 +989,7 @@
         allEvents = payload.events || [];
         reviewItems = reviewPayload.items || [];
         repository = payload.repository || reviewPayload.repository || "";
+        pruneStaleDecisions();
         document.getElementById("stat-confirmed").textContent = payload.eventCount || 0;
         document.getElementById("stat-pending").textContent = reviewItems.length;
         renderReviewItems();
@@ -664,7 +1001,7 @@
           : "아직 실행되지 않음";
         document.getElementById("updated").textContent = `마지막 업데이트 ${generated}`;
 
-        const today = new Date().toISOString().slice(0, 10);
+        const today = kstDateString();
         const upcoming = allEvents.map(event => event.start).filter(value => value >= today).sort()[0];
         calendar = new FullCalendar.Calendar(document.getElementById("calendar"), {
           locale: "ko",

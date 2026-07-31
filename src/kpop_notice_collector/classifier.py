@@ -159,7 +159,6 @@ def news_rejection_reason(notice: Notice, *, backfill: bool = False) -> str:
     if (
         FOLLOWUP_CONTENT.search(title)
         and not NEW_ANNOUNCEMENT.search(title)
-        and not backfill
     ):
         return "티저·인터뷰·차트 등 후속 콘텐츠"
     if notice.activity_type == "TOUR_ANNOUNCEMENT" and not NEW_ANNOUNCEMENT.search(title):
@@ -167,8 +166,7 @@ def news_rejection_reason(notice: Notice, *, backfill: bool = False) -> str:
     if notice.activity_type in {"CONCERT", "FANMEETING", "POPUP"} and not NEW_ANNOUNCEMENT.search(title):
         return "개최·운영 신규 문구 없음"
     if notice.activity_type == "COMEBACK" and not NEW_ANNOUNCEMENT.search(title):
-        if not (backfill and FOLLOWUP_CONTENT.search(title)):
-            return "컴백·발매 신규 발표 문구 없음"
+        return "컴백·발매 신규 발표 문구 없음"
     return ""
 
 

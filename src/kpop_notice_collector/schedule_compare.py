@@ -6,6 +6,7 @@ from difflib import SequenceMatcher
 from pathlib import Path
 
 from .models import Notice
+from .safety import restore_spreadsheet_row
 
 
 TOUR_TYPES = {
@@ -33,7 +34,12 @@ def load_event_history(path: str | Path) -> list[dict]:
     if not path.exists():
         return []
     with path.open(encoding="utf-8-sig", newline="") as f:
-        return list(csv.DictReader(f))
+        reader = csv.DictReader(f)
+        # 날짜 신뢰도 필드가 없는 v3.0 이력은 첫 실행의 추가 회차
+        # 판정에도 사용하지 않는다.
+        if "date_confidence" not in (reader.fieldnames or []):
+            return []
+        return [restore_spreadsheet_row(row) for row in reader]
 
 
 def assess_schedule_change(notice: Notice, history: list[dict]) -> Notice:
