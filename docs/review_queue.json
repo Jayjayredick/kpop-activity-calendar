@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-08-02T08:32:14.640738+09:00",
+  "generatedAt": "2026-08-03T08:31:05.894929+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 4,
+  "pendingCount": 5,
   "items": [
     {
       "candidateId": "9f2ab9ae6a92d3a07d5bfdfd",
@@ -63,6 +63,36 @@
       "clippedText": "그룹 웨이션브이(WayV)가 여덟 번째 미니앨범 '비전 윙스'(Vision Wings)를 통해 깊고 따뜻한 감성을... 한편, 웨이션브이는 8월 2일(현지시간) 뉴욕 센트럴 파크에서 열리는 대규모 페스티벌 '서머스테이지'에 출연한다....",
       "firstSeen": "2026-08-01T08:33:21.050332+09:00",
       "lastSeen": "2026-08-01T08:33:21.050332+09:00"
+    },
+    {
+      "candidateId": "77694e4fb5bdae5b13a99d30",
+      "eventKey": "3d237f0cfa9a9ad044491f83",
+      "company": "JYP",
+      "label": "Studio J",
+      "artistId": "day6",
+      "artist": "DAY6",
+      "activityType": "TOUR_ANNOUNCEMENT",
+      "activityLabel": "투어 발표",
+      "eventName": "영케이, 정규 2집 활동 성료→ 솔로 투어",
+      "eventStartDate": "2026-08-14",
+      "eventEndDate": "2026-08-16",
+      "eventDates": "2026-08-14|2026-08-15|2026-08-16",
+      "dateConfidence": "HIGH",
+      "dateEvidence": "8월 14일~16일",
+      "dateSource": "TITLE",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "데이식스 영케이, 정규 2집 활동 성료→8월 14일~16일 솔로 투어 개최",
+      "publishedAt": "2026-08-02T14:12:00+09:00",
+      "score": "72",
+      "reviewReason": "MANUAL_APPROVAL_REQUIRED",
+      "primaryUrl": "https://www.heraldmuse.com/article/10828163?ref=naver",
+      "naverUrl": "https://m.entertain.naver.com/article/112/0003803253",
+      "supportingArticleCount": "1",
+      "clippedText": "DAY6(데이식스) Young K(영케이)가 다채로운 활약을 이어간다. Young K는 7월 27일 정규 2집 ‘YOUNGEST’(영기스트)와 타이틀곡 ‘Shut The Door’(셧 더 도어)를 발매했다. 지난 30일 Mnet ‘엠카운트다운’을 시작으로...",
+      "firstSeen": "2026-08-03T08:31:05.894929+09:00",
+      "lastSeen": "2026-08-03T08:31:05.894929+09:00"
     },
     {
       "candidateId": "f026d0bec80a8c22c92a3845",
