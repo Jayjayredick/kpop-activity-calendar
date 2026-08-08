@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-08-08T08:08:07.079154+09:00",
+  "generatedAt": "2026-08-09T07:59:53.041371+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 38,
+  "pendingCount": 39,
   "items": [
     {
       "candidateId": "8139def74a60fa6d4641e3f4",
@@ -993,6 +993,36 @@
       "clippedText": "슈퍼주니어 려욱이 일본으로 영역을 확장한다. 슈퍼주니어 려욱은 2016년 1월 28일 첫 번째 미니 앨범 '어린왕자'를 발매하며 솔로로 데뷔, 올해 10주년을 맞이했다. 솔로 데뷔 10주년을 맞은 려욱은 8월 5일...",
       "firstSeen": "2026-08-05T08:35:00.642823+09:00",
       "lastSeen": "2026-08-05T08:35:00.642823+09:00"
+    },
+    {
+      "candidateId": "227fd526c8919b67b8c86d54",
+      "eventKey": "d078c5467873e4a8642ef822",
+      "company": "SM",
+      "label": "3세대 그룹",
+      "artistId": "red_velvet",
+      "artist": "Red Velvet",
+      "activityType": "COMEBACK",
+      "activityLabel": "컴백",
+      "eventName": "'쇼음악중심' ·스트레이키즈",
+      "eventStartDate": "",
+      "eventEndDate": "",
+      "eventDates": "",
+      "dateConfidence": "NONE",
+      "dateEvidence": "",
+      "dateSource": "",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "'쇼음악중심' 레드벨벳·스트레이키즈 컴백...출연진 라인업 확정",
+      "publishedAt": "2026-08-08T14:44:00+09:00",
+      "score": "66",
+      "reviewReason": "DATE_NOT_FOUND",
+      "primaryUrl": "https://www.gukjenews.com/news/articleView.html?idxno=3659371",
+      "naverUrl": "https://www.gukjenews.com/news/articleView.html?idxno=3659371",
+      "supportingArticleCount": "1",
+      "clippedText": "피철인(세븐틴 디노) . 다영(DAYOUNG) X 박재범 . Stray Kids . JUNHEE . ARTMS . 더윈드(The Wind) . KISS OF LIFE . POW(파우) . WHIB(휘브) . BABYMONSTER . NOWZ(나우즈) . NouerA(누에라) . 키제(KiXÉ) . A2O MAY . Blue is not blue",
+      "firstSeen": "2026-08-09T07:59:53.041371+09:00",
+      "lastSeen": "2026-08-09T07:59:53.041371+09:00"
     },
     {
       "candidateId": "5323465df351aed36564b56a",
