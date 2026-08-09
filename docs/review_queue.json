@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-08-09T07:59:53.041371+09:00",
+  "generatedAt": "2026-08-10T08:01:45.407885+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 39,
+  "pendingCount": 40,
   "items": [
     {
       "candidateId": "8139def74a60fa6d4641e3f4",
@@ -273,6 +273,36 @@
       "clippedText": "… 한층 진화한 스트레이 키즈(Stray Kids)를 만날 시간이다. 스트레이 키즈가 팬들 곁으로 돌아온다. 소속사 측은 7일 “스트레이 키즈가 오늘 오후 1시 새 미니앨범...",
       "firstSeen": "2026-08-07T10:37:20.511258+09:00",
       "lastSeen": "2026-08-08T08:08:07.079154+09:00"
+    },
+    {
+      "candidateId": "1350c38879e5798d9b0c33f0",
+      "eventKey": "0a80900438b651df609b1854",
+      "company": "SM",
+      "label": "4세대 그룹",
+      "artistId": "aespa",
+      "artist": "aespa",
+      "activityType": "TOUR_ANNOUNCEMENT",
+      "activityLabel": "투어 발표",
+      "eventName": "3만 5000명 관객과 고척돔 달궜다",
+      "eventStartDate": "2026-08-07",
+      "eventEndDate": "2026-08-08",
+      "eventDates": "2026-08-07|2026-08-08",
+      "dateConfidence": "LOW",
+      "dateEvidence": "7~8일",
+      "dateSource": "BODY",
+      "dateConflict": "N",
+      "cities": "서울",
+      "venues": "3만 5000명 관객과 고척돔|가 데뷔 후 첫 고척스카이돔|고척스카이돔",
+      "articleTitle": "에스파, 3만 5000명 관객과 고척돔 달궜다…4번째 월드투어 스타트",
+      "publishedAt": "2026-08-09T15:39:00+09:00",
+      "score": "77",
+      "reviewReason": "DATE_LOW_CONFIDENCE",
+      "primaryUrl": "https://www.mk.co.kr/article/12122064",
+      "naverUrl": "https://n.news.naver.com/mnews/article/009/0005718492?sid=103",
+      "supportingArticleCount": "1",
+      "clippedText": "SM엔터테인먼트 대표 그룹 에스파(aespa)가 데뷔 후 첫 고척스카이돔 단독 콘서트로 네 번째 월드투어의 막을 올렸다. 에스파는 지난 7~8일 서울 고척스카이돔에서 ‘2026-27 에스파 라이브 투어-싱크: 컴플랙시티’를...",
+      "firstSeen": "2026-08-10T08:01:45.407885+09:00",
+      "lastSeen": "2026-08-10T08:01:45.407885+09:00"
     },
     {
       "candidateId": "2f1068bd36cfdc25ba08145d",
