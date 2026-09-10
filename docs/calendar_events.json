@@ -1,11 +1,11 @@
 {
-  "generatedAt": "2026-09-09T09:28:59.717270+09:00",
+  "generatedAt": "2026-09-10T09:28:59.132667+09:00",
   "timezone": "Asia/Seoul",
-  "rangeStart": "2026-08-26",
-  "rangeEndInclusive": "2026-12-09",
-  "rangeEndExclusive": "2026-12-10",
+  "rangeStart": "2026-08-27",
+  "rangeEndInclusive": "2026-12-10",
+  "rangeEndExclusive": "2026-12-11",
   "eventCount": 0,
-  "pendingCount": 66,
+  "pendingCount": 71,
   "repository": "jayjayredick/kpop-activity-calendar",
   "events": []
 }
