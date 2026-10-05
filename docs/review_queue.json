@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-04T10:56:05.430408+09:00",
+  "generatedAt": "2026-10-05T10:09:24.891214+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 206,
+  "pendingCount": 207,
   "items": [
     {
       "candidateId": "8139def74a60fa6d4641e3f4",
@@ -4803,6 +4803,36 @@
       "clippedText": "그룹 갓세븐 멤버 겸 배우로 활동 중인 진영이 첫 솔로 콘서트 투어를 개최한다. 14일 소속사 BH엔터테인먼트는 공식 계정을 통해 진영의 첫 콘서트 투어 'CODE#' 서울 공연 일정 및 투어 일정을 안내했다. 안내에...",
       "firstSeen": "2026-09-15T09:50:51.899912+09:00",
       "lastSeen": "2026-09-15T09:50:51.899912+09:00"
+    },
+    {
+      "candidateId": "bb9e84a7adbaf10b0c69c044",
+      "eventKey": "fac9d90e73de60fff8b7002e",
+      "company": "JYP",
+      "label": "5세대 그룹",
+      "artistId": "kickflip",
+      "artist": "KickFlip (킥플립)",
+      "activityType": "COMEBACK",
+      "activityLabel": "컴백",
+      "eventName": "\"청춘은 0에서 시작\" 멤버들이 고른 새 미니 앨범 한 곡",
+      "eventStartDate": "",
+      "eventEndDate": "",
+      "eventDates": "",
+      "dateConfidence": "NONE",
+      "dateEvidence": "",
+      "dateSource": "",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "킥플립, \"청춘은 0에서 시작\" 멤버들이 고른 새 미니 앨범 한 곡",
+      "publishedAt": "2026-10-05T10:04:00+09:00",
+      "score": "66",
+      "reviewReason": "DATE_NOT_FOUND",
+      "primaryUrl": "https://www.topstarnews.net/news/articleView.html?idxno=16238387",
+      "naverUrl": "https://www.topstarnews.net/news/articleView.html?idxno=16238387",
+      "supportingArticleCount": "1",
+      "clippedText": "킥플립은 새 미니 앨범을 통해 청춘에 대한 각자의 생각을 곡으로 풀어냈다. 멤버들은 직접 작업에... 민제는 \"'우리 같이 청춘을 낭비해'는 지금의 킥플립과 가장 닮은 것 같다\"고 운을 뗀 뒤 \"청춘은 완벽하게...",
+      "firstSeen": "2026-10-05T10:09:24.891214+09:00",
+      "lastSeen": "2026-10-05T10:09:24.891214+09:00"
     },
     {
       "candidateId": "a8741469b725bd7cdb461686",
