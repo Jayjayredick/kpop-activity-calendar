@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-09T11:28:04.771487+09:00",
+  "generatedAt": "2026-10-10T10:52:57.522508+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 240,
+  "pendingCount": 241,
   "items": [
     {
       "candidateId": "6061da9302edca56b9532d38",
@@ -5733,6 +5733,36 @@
       "clippedText": "킥플립(KickFlip)이 데뷔 첫 더블 타이틀곡과 멤버들이 전곡 작업에 참여한 신보로 청춘의 고민과 도전을 노래한다. 킥플립은 6일 오후 6시 새 미니 앨범 'KICK OFF THE WALL Pt. 1'(킥 오프 더 월 파트 원)을 발매한다. 지난...",
       "firstSeen": "2026-10-06T11:26:54.984771+09:00",
       "lastSeen": "2026-10-06T11:26:54.984771+09:00"
+    },
+    {
+      "candidateId": "27c560ef7a36ff1d9add826f",
+      "eventKey": "af32249839dc67ed7252f19b",
+      "company": "JYP",
+      "label": "5세대 그룹",
+      "artistId": "kickflip",
+      "artist": "KickFlip (킥플립)",
+      "activityType": "POPUP",
+      "activityLabel": "팝업",
+      "eventName": "킥플립( ) 팝업 스토어 하고 열기 증강",
+      "eventStartDate": "",
+      "eventEndDate": "",
+      "eventDates": "",
+      "dateConfidence": "NONE",
+      "dateEvidence": "",
+      "dateSource": "",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "킥플립(KickFlip) 팝업 스토어 개최하고 컴백 열기 증강",
+      "publishedAt": "2026-10-10T04:34:00+09:00",
+      "score": "68",
+      "reviewReason": "DATE_NOT_FOUND",
+      "primaryUrl": "https://sports.khan.co.kr/article/202610100433003?pt=nv",
+      "naverUrl": "https://m.entertain.naver.com/article/144/0001143172",
+      "supportingArticleCount": "1",
+      "clippedText": "아이돌그룹 킥플립은 지난 6일 새 미니 앨범 ‘KICK OFF THE WALL Pt. 1’(킥 오프 더 월 파트 원)과 더블... ‘KICK OFF THE WALL : KICKDOONGS BREAK OUT’은 킥플립의 새 미니 앨범 콘셉트와 공식 캐릭터 킥둥쓰를 활용해...",
+      "firstSeen": "2026-10-10T10:52:57.522508+09:00",
+      "lastSeen": "2026-10-10T10:52:57.522508+09:00"
     },
     {
       "candidateId": "e16d4d7c0e316a222881e06c",
