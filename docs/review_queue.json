@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-10T10:52:57.522508+09:00",
+  "generatedAt": "2026-10-11T10:11:18.352727+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 241,
+  "pendingCount": 242,
   "items": [
     {
       "candidateId": "6061da9302edca56b9532d38",
@@ -3603,6 +3603,36 @@
       "clippedText": "그룹 투어스(TWS)가 여섯 청춘의 꾸밈없는 모습을 과감히 담은 신곡으로 돌아온다. 투어스는 오는 11월 2일 두 번째 싱글 '투 어스'(TO US)를 발매한다. 팀명과 발음이 동일한 앨범명이다. 지금 투어스가 전하고 싶은...",
       "firstSeen": "2026-10-08T11:13:08.590478+09:00",
       "lastSeen": "2026-10-08T11:13:08.590478+09:00"
+    },
+    {
+      "candidateId": "61378069cf46c20b67dd02d5",
+      "eventKey": "cb5b2d427397c27e9de4ade7",
+      "company": "HYBE",
+      "label": "플레디스",
+      "artistId": "tws",
+      "artist": "TWS (투어스)",
+      "activityType": "COMEBACK",
+      "activityLabel": "컴백",
+      "eventName": "TO US",
+      "eventStartDate": "2026-11-02",
+      "eventEndDate": "2026-11-02",
+      "eventDates": "2026-11-02",
+      "dateConfidence": "HIGH",
+      "dateEvidence": "11월 2일",
+      "dateSource": "TITLE",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "TWS, 11월 2일 컴백 확정… 새 싱글 'TO US' 발매",
+      "publishedAt": "2026-10-10T23:10:00+09:00",
+      "score": "66",
+      "reviewReason": "MANUAL_APPROVAL_REQUIRED",
+      "primaryUrl": "https://www.ggilbo.com/news/articleView.html?idxno=1185511",
+      "naverUrl": "https://www.ggilbo.com/news/articleView.html?idxno=1185511",
+      "supportingArticleCount": "1",
+      "clippedText": "사진=플레디스 엔터테인먼트 그룹 TWS(투어스)가 새 싱글을 통해 지금의 자신들이 느끼는 감정과 이야기를 들려준다. TWS는 오는 11월 2일 싱글 2집 'TO US'를 발매한다. 지난 미니 5집 'NO TRAGEDY' 이후 약 6개월 만에...",
+      "firstSeen": "2026-10-11T10:11:18.352727+09:00",
+      "lastSeen": "2026-10-11T10:11:18.352727+09:00"
     },
     {
       "candidateId": "fdec050b56c0e1a7e4b80d6d",
