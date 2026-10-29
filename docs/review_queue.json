@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-10-28T10:34:59.930529+09:00",
+  "generatedAt": "2026-10-29T10:55:24.431563+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 337,
+  "pendingCount": 338,
   "items": [
     {
       "candidateId": "6061da9302edca56b9532d38",
@@ -9995,6 +9995,36 @@
       "lastSeen": "2026-10-28T10:34:59.930529+09:00"
     },
     {
+      "candidateId": "e1ea46d2a9e1a4333a0bbda0",
+      "eventKey": "7a540605c61130d35aa583a9",
+      "company": "YG",
+      "label": "그룹/멤버 분리",
+      "artistId": "bigbang",
+      "artist": "BIGBANG (빅뱅)",
+      "activityType": "TOUR_ANNOUNCEMENT",
+      "activityLabel": "투어 발표",
+      "eventName": "화요일 스타트렌드 K-POP 그룹 20만 표",
+      "eventStartDate": "",
+      "eventEndDate": "",
+      "eventDates": "",
+      "dateConfidence": "NONE",
+      "dateEvidence": "",
+      "dateSource": "",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "빅뱅, 화요일 스타트렌드 K-POP 그룹 20만 표…시드니 월드투어 기대감...",
+      "publishedAt": "2026-10-28T10:56:00+09:00",
+      "score": "72",
+      "reviewReason": "DATE_NOT_FOUND",
+      "primaryUrl": "https://www.thepublic.kr/news/articleView.html?idxno=324047",
+      "naverUrl": "https://www.thepublic.kr/news/articleView.html?idxno=324047",
+      "supportingArticleCount": "1",
+      "clippedText": "앵두걸스·보이넥스트도어·온앤오프, 3~5위 기록 3위는 앵두걸스로 16,029표를 획득했다. 4위는 보이넥스트도어로 14,333표를 기록했다. 5위는 온앤오프로 4,838표를 얻었다. 6위부터 8위까지 K-POP 그룹 순위...",
+      "firstSeen": "2026-10-29T10:55:24.431563+09:00",
+      "lastSeen": "2026-10-29T10:55:24.431563+09:00"
+    },
+    {
       "candidateId": "c9d55dd96bb302a0acd0620b",
       "eventKey": "9a51c68977eab813139a8252",
       "company": "YG",
@@ -10044,15 +10074,15 @@
       "cities": "",
       "venues": "",
       "articleTitle": "[주간! 대중문화] 블랙핑크 지수 컴백 앞두고 선공개곡 발표…중독성 강...",
-      "publishedAt": "2026-10-28T07:45:00+09:00",
+      "publishedAt": "2026-10-28T17:23:00+09:00",
       "score": "66",
       "reviewReason": "DATE_NOT_FOUND",
-      "primaryUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8697147&ref=A",
-      "naverUrl": "https://n.news.naver.com/mnews/article/056/0012282201?sid=103",
+      "primaryUrl": "https://news.kbs.co.kr/news/pc/view/view.do?ncd=8697625&ref=A",
+      "naverUrl": "https://n.news.naver.com/mnews/article/056/0012282634?sid=103",
       "supportingArticleCount": "2",
-      "clippedText": "… 원 차트 공략에 나섭니다. 안방 극장을 넘어 연극... =================================== '아일릿', 중독성 강한 '체포하겠어'로 컴백 =================================== 중독성...",
+      "clippedText": "[주간! 대중문화] 블랙핑크 지수 컴백 앞두고 선공개곡 발표…중독성 강...",
       "firstSeen": "2026-10-28T10:34:59.930529+09:00",
-      "lastSeen": "2026-10-28T10:34:59.930529+09:00"
+      "lastSeen": "2026-10-29T10:55:24.431563+09:00"
     },
     {
       "candidateId": "a4ea63c3a29e73abd679a54a",
