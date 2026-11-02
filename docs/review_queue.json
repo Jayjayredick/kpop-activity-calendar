@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-01T10:23:37.064535+09:00",
+  "generatedAt": "2026-11-02T10:44:15.198475+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 345,
+  "pendingCount": 346,
   "items": [
     {
       "candidateId": "6061da9302edca56b9532d38",
@@ -10353,6 +10353,36 @@
       "clippedText": "블랙핑크 리사가 한 편의 영화 같은 새 앨범 '프레스 플레이'를 발매했습니다. 앨범 발매 직전 한국 팬들을 위해 리스닝 파티도 열었습니다. 지난 금요일 공개된 새 미니앨범 '프레스 플레이'는 재생 버튼을 누르는 순간 한...",
       "firstSeen": "2026-10-24T09:58:47.377791+09:00",
       "lastSeen": "2026-10-26T09:37:04.334212+09:00"
+    },
+    {
+      "candidateId": "d81e31715d6af713d0b22794",
+      "eventKey": "3a0a5b6a32bf45a2716d01e1",
+      "company": "YG",
+      "label": "본사",
+      "artistId": "treasure",
+      "artist": "TREASURE",
+      "activityType": "COMEBACK",
+      "activityLabel": "컴백",
+      "eventName": "SHOCK",
+      "eventStartDate": "",
+      "eventEndDate": "",
+      "eventDates": "",
+      "dateConfidence": "NONE",
+      "dateEvidence": "",
+      "dateSource": "",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "트레저, 오늘 디지털 싱글 'SHOCK' 발매…정통 힙합으로 컴백",
+      "publishedAt": "2026-11-02T09:20:00+09:00",
+      "score": "66",
+      "reviewReason": "DATE_NOT_FOUND",
+      "primaryUrl": "https://www.topstarnews.net/news/articleView.html?idxno=16265844",
+      "naverUrl": "https://www.topstarnews.net/news/articleView.html?idxno=16265844",
+      "supportingArticleCount": "1",
+      "clippedText": "트레저가 2일 오후 6시 새 디지털 싱글 'SHOCK'을 발표하고 컴백한다. 지난 6월 미니 4집 'NEW WAV'로 팀의 2막을... 'SHOCK'은 YG 엔터테인먼트 음악의 근간인 힙합 장르의 묵직한 색채에 트레저 특유의 파워풀함과 역동성을...",
+      "firstSeen": "2026-11-02T10:44:15.198475+09:00",
+      "lastSeen": "2026-11-02T10:44:15.198475+09:00"
     }
   ]
 }
