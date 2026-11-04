@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-03T12:39:22.223068+09:00",
+  "generatedAt": "2026-11-04T11:37:31.410973+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 355,
+  "pendingCount": 356,
   "items": [
     {
       "candidateId": "6061da9302edca56b9532d38",
@@ -6093,6 +6093,36 @@
       "clippedText": "보이넥스트도어(BOYNEXTDOOR)가 첫 월드 투어에서 국내와 일본을 넘어 중화권까지 매진 흐름을 이어가고 있다. 서울과 부산, 일본 오사카·치바·나가노에 이어 대만과 홍콩 공연까지 전 회차가 매진되면서 투어 규모도...",
       "firstSeen": "2026-09-19T09:32:05.065069+09:00",
       "lastSeen": "2026-09-19T09:32:05.065069+09:00"
+    },
+    {
+      "candidateId": "12c245f24766e65f107a738c",
+      "eventKey": "93aa3ac6a480ac856728641e",
+      "company": "HYBE",
+      "label": "빅히트 뮤직",
+      "artistId": "bts",
+      "artist": "BTS (방탄소년단)",
+      "activityType": "TOUR_ANNOUNCEMENT",
+      "activityLabel": "투어 발표",
+      "eventName": "ARIRANG",
+      "eventStartDate": "",
+      "eventEndDate": "",
+      "eventDates": "",
+      "dateConfidence": "NONE",
+      "dateEvidence": "",
+      "dateSource": "",
+      "dateConflict": "N",
+      "cities": "자카르타",
+      "venues": "",
+      "articleTitle": "방탄소년단 월드 투어 'ARIRANG', 가오슝·자카르타 라이브 뷰잉 확정…...",
+      "publishedAt": "2026-11-03T17:30:00+09:00",
+      "score": "72",
+      "reviewReason": "DATE_NOT_FOUND",
+      "primaryUrl": "https://www.topstarnews.net/news/articleView.html?idxno=16267217",
+      "naverUrl": "https://www.topstarnews.net/news/articleView.html?idxno=16267217",
+      "supportingArticleCount": "1",
+      "clippedText": "그룹 방탄소년단의 월드투어 'ARIRANG'을 전 세계 영화관에서 라이브 뷰잉으로 생중계하는 가운데 국내 극장 3사의 특전 증정 이벤트가 공개됐다. 최근 방탄소년단 공식 팬 커뮤니티 위버스에는 'BTS WORLD TOUR 'ARIRANG...",
+      "firstSeen": "2026-11-04T11:37:31.410973+09:00",
+      "lastSeen": "2026-11-04T11:37:31.410973+09:00"
     },
     {
       "candidateId": "82a503c9aceecd7926e770ad",
