@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-04T11:37:31.410973+09:00",
+  "generatedAt": "2026-11-05T11:42:24.646380+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 356,
+  "pendingCount": 357,
   "items": [
     {
       "candidateId": "6061da9302edca56b9532d38",
@@ -8553,6 +8553,36 @@
       "clippedText": "그룹 NMIXX(엔믹스)가 다채로운 티징 콘텐츠로 컴백을 예고했다. 엔믹스는 22일 여섯 번째 미니 앨범 'Strange Muse'(스트레인지 뮤즈) 발매를 앞두고 스케줄러 이미지를 게재했다. 이에 따르면 NMIXX는...",
       "firstSeen": "2026-09-24T09:47:59.847990+09:00",
       "lastSeen": "2026-09-24T09:47:59.847990+09:00"
+    },
+    {
+      "candidateId": "4847fb185cf864321c043981",
+      "eventKey": "f4fb86d8d1193591177394fc",
+      "company": "JYP",
+      "label": "4세대 그룹",
+      "artistId": "nmixx",
+      "artist": "NMIXX",
+      "activityType": "COMEBACK",
+      "activityLabel": "컴백",
+      "eventName": "이어 겹경사..'AAA 2026' 인기상 女그룹 가수 확정",
+      "eventStartDate": "",
+      "eventEndDate": "",
+      "eventDates": "",
+      "dateConfidence": "NONE",
+      "dateEvidence": "",
+      "dateSource": "",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "엔믹스, 컴백 이어 겹경사..'AAA 2026' 인기상 女그룹 가수 확정",
+      "publishedAt": "2026-11-05T11:22:00+09:00",
+      "score": "68",
+      "reviewReason": "DATE_NOT_FOUND",
+      "primaryUrl": "https://www.starnewskorea.com/star/2026/11/05/2026110510415813413",
+      "naverUrl": "https://m.entertain.naver.com/article/108/0003484867",
+      "supportingArticleCount": "1",
+      "clippedText": "연준(투모로우바이투게더), 올데이 프로젝트(ALLDAY PROJECT), 우즈(WOODZ), 유나(ITZY), ITZY(있지), 제로베이스원(ZEROBASEONE), 주헌(몬스타엑스), 채령(CHAERYEONG), 최예나(YENA), 코르티스(CORTIS), 클로즈 유어...",
+      "firstSeen": "2026-11-05T11:42:24.646380+09:00",
+      "lastSeen": "2026-11-05T11:42:24.646380+09:00"
     },
     {
       "candidateId": "0cf52a913192931fee1a037b",
