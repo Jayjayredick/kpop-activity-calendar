@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-07T11:17:13.780322+09:00",
+  "generatedAt": "2026-11-08T10:44:59.837853+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 372,
+  "pendingCount": 373,
   "items": [
     {
       "candidateId": "6061da9302edca56b9532d38",
@@ -4593,6 +4593,36 @@
       "clippedText": "SM엔터테인먼트 그룹 레드벨벳의 유닛 아이린&슬기가 일본에서 첫 미니앨범을 발매하며 정식 유닛 데뷔에 나선다. 아이린&슬기는 오는 11월 4일 일본 첫 미니앨범 '치타'(Cheetah)를 현지에서 발매한다. 이에 앞서 오는 9월...",
       "firstSeen": "2026-09-11T09:26:43.074563+09:00",
       "lastSeen": "2026-09-11T09:26:43.074563+09:00"
+    },
+    {
+      "candidateId": "086aaa46b3fd49b8f6763b07",
+      "eventKey": "21da77e0e73b002435e5bf61",
+      "company": "SM",
+      "label": "SM Entertainment",
+      "artistId": "irene_seulgi",
+      "artist": "IRENE & SEULGI",
+      "activityType": "ADDITIONAL_SHOW",
+      "activityLabel": "추가 회차",
+      "eventName": "레드벨벳 , 첫 日 투어 성황리 마무리..내년 2월 추가 공연",
+      "eventStartDate": "2026-11-04",
+      "eventEndDate": "2026-11-05",
+      "eventDates": "2026-11-04|2026-11-05",
+      "dateConfidence": "LOW",
+      "dateEvidence": "4~5일",
+      "dateSource": "BODY",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "레드벨벳 아이린&슬기, 첫 日 투어 성황리 마무리..내년 2월 추가 공연 ...",
+      "publishedAt": "2026-11-07T14:09:00+09:00",
+      "score": "80",
+      "reviewReason": "DATE_LOW_CONFIDENCE",
+      "primaryUrl": "http://www.osen.co.kr/article/G1112905770",
+      "naverUrl": "https://m.entertain.naver.com/article/109/0005636191",
+      "supportingArticleCount": "4",
+      "clippedText": "그룹 레드벨벳-아이린&슬기가 가나가와 공연을 끝으로 첫 일본 투어를 성황리에 마무리했다. 아이린&슬기의 첫 일본 투어 ‘IRENE & SEULGI JAPAN TOUR 2026 -blank-’는 지난 4~5일 가나가와 요코하마에서 피날레를...",
+      "firstSeen": "2026-11-08T10:44:59.837853+09:00",
+      "lastSeen": "2026-11-08T10:44:59.837853+09:00"
     },
     {
       "candidateId": "b451fcc39393ae3a2fed6bd1",
