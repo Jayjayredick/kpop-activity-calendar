@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-11-21T12:23:45.283195+09:00",
+  "generatedAt": "2026-11-22T11:34:08.196667+09:00",
   "timezone": "Asia/Seoul",
   "repository": "jayjayredick/kpop-activity-calendar",
-  "pendingCount": 508,
+  "pendingCount": 509,
   "items": [
     {
       "candidateId": "6061da9302edca56b9532d38",
@@ -7322,7 +7322,7 @@
       "supportingArticleCount": "1",
       "clippedText": "밴드 DAY6(데이식스)가 연말 스페셜 콘서트를 전석 매진시키며 티켓 파워를 입증했다. DAY6는 오는 12월 18일부터 20일까지 사흘간 서울 송파구 KSPO DOME에서 ‘2026 DAY6 Special Concert ’The Present...",
       "firstSeen": "2026-11-21T12:23:45.283195+09:00",
-      "lastSeen": "2026-11-21T12:23:45.283195+09:00"
+      "lastSeen": "2026-11-22T11:34:08.196667+09:00"
     },
     {
       "candidateId": "e4ebb44a905ed435117e1eae",
@@ -8583,6 +8583,36 @@
       "clippedText": "엔하이픈(ENHYPEN)이 신보 ‘THE SIN : PARALLEL WORLD’를 오는 11월 발매한다. ▲ [SWTV 스포츠W 임가을 기자] 엔하이픈(ENHYPEN)이 신보 ‘THE SIN : PARALLEL WORLD’를 오는 11월 발매한다. (사진=빌리프랩) 엔하이픈은...",
       "firstSeen": "2026-10-27T10:35:30.450896+09:00",
       "lastSeen": "2026-10-27T10:35:30.450896+09:00"
+    },
+    {
+      "candidateId": "21e8292499bfd4c032313987",
+      "eventKey": "02467485dcfe1dceafb207b9",
+      "company": "HYBE",
+      "label": "빌리프랩",
+      "artistId": "enhypen",
+      "artist": "ENHYPEN",
+      "activityType": "COMEBACK",
+      "activityLabel": "컴백",
+      "eventName": "리믹스 앨범 발매",
+      "eventStartDate": "",
+      "eventEndDate": "",
+      "eventDates": "",
+      "dateConfidence": "NONE",
+      "dateEvidence": "",
+      "dateSource": "",
+      "dateConflict": "N",
+      "cities": "",
+      "venues": "",
+      "articleTitle": "엔하이픈, 리믹스 앨범 발매…\"어쿠스틱→시티팝의 변주\"",
+      "publishedAt": "2026-11-21T17:01:00+09:00",
+      "score": "66",
+      "reviewReason": "DATE_NOT_FOUND",
+      "primaryUrl": "http://www.dispatch.co.kr/2351167",
+      "naverUrl": "https://m.entertain.naver.com/article/433/0000132563",
+      "supportingArticleCount": "1",
+      "clippedText": "엔하이픈이 신곡을 다양하게 변주한 리믹스 앨범을 내놨다. 엔하이픈은 21일 오후 2시(한국시간) 각종 음악 플랫폼에 스핀오프 싱글 타이틀곡 '아이 원트 유'(I Want You) 리믹스 음반을 발매했다. 신보에는 총 7곡이...",
+      "firstSeen": "2026-11-22T11:34:08.196667+09:00",
+      "lastSeen": "2026-11-22T11:34:08.196667+09:00"
     },
     {
       "candidateId": "ce34e95f106f03e80f74d4b3",
